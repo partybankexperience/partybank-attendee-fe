@@ -37,7 +37,7 @@ const DefaultButton = ({
       "bg-black text-white hover:bg-grey focus:bg-grey focus:border-[1px] focus:border-black disabled:bg-mutedBlueGrey disabled:!text-white",
   };
   const baseStyle =
-    "font-[RedHat] font-bold rounded-[8px] text-[16px] w-fit cursor-pointer disabled:cursor-not-allowed disabled:border-mutedBlueGrey disabled:text-mutedBlueGrey";
+    " font-bold rounded-[8px] text-[16px] w-fit cursor-pointer disabled:cursor-not-allowed disabled:border-mutedBlueGrey disabled:text-mutedBlueGrey";
 
   const sizeStyle =
     size === "small"
