@@ -1,34 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Route, Routes } from "react-router"
+import Home from "./pages/home/Home"
+import Checkout from "./pages/checkout/Checkout"
+import Login from "./pages/onBoarding/Login"
+import SignUp from "./pages/onBoarding/SignUp"
+import EmailVerification from "./pages/onBoarding/EmailVerification"
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Routes>
+      <Route
+        path="/"
+        element={<Home/>} // Replace with your Home component
+      />
+      <Route
+        path="/login"
+        element={<Login/>} // Replace with your Home component
+      />
+      <Route
+        path="/signup"
+        element={<SignUp/>} // Replace with your Home component
+      />
+      <Route
+        path="/email-verification"
+        element={<EmailVerification/>} // Replace with your Home component
+      />
+      <Route
+        path="/checkout"
+        element={<Checkout/>} // Replace with your About component
+      />
+    </Routes>
   )
 }
 
