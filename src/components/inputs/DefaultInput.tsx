@@ -128,7 +128,7 @@ const DefaultInput = forwardRef<HTMLInputElement, DefaultInputProps>(
     const paddingRight = needsRightPadding ? 'pr-[70px]' : '';
 
     return (
-      <div className="grid gap-1  w-full relative">
+      <div className="grid gap-1  w-full relative h-fit">
         <label htmlFor={id} className="text-[#231F20] text-[16px] font-semibold ">
           {label}
         </label>
