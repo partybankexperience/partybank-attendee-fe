@@ -7,7 +7,9 @@ import backgroundImage from "../../assets/images/backgroundImage.svg";
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-const HomeLayout = ({ children }: any) => {
+import React from "react";
+
+const HomeLayout = ({ children }: React.PropsWithChildren) => {
   const navigate = useNavigate();
   const location = useLocation();
 

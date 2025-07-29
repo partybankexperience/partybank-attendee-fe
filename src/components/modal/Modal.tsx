@@ -67,7 +67,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-lg shadow-lg p-6 max-w-md w-[calc(100vw-40px)] md:w-full"
+        className="bg-white rounded-lg shadow-lg p-6 max-w-md w-[calc(100vw-40px)] 
+        md:w-full h-[90vh]"
       >
         <button className="flex justify-end
         "onClick={onClose}>
