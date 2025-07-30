@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { X, Calendar, Clock, MapPin, Ticket } from "lucide-react";
+// import { X, Calendar, Clock, MapPin, Ticket } from "lucide-react";
+import { Calendar, Clock, MapPin, Ticket } from "lucide-react";
  import { useNavigate } from 'react-router-dom';
 
 interface FormData {
@@ -21,11 +22,12 @@ interface TicketData {
   pricePerTicket: number;
   total: number;
 }
-interface CheckoutComponentType {
-  onClose: () => void;
-}
+// interface CheckoutComponentType {
+//   onClose: () => void;
+// }
 
-const CheckoutComponent: React.FC<CheckoutComponentType> = ({ onClose }) => {
+// const CheckoutComponent: React.FC<CheckoutComponentType> = ({ onClose }) => {
+const CheckoutComponent: React.FC = () => {
   // Timer state for checkout countdown
   const [timeLeft, setTimeLeft] = useState<number>(15 * 60 + 37); // 15:37 in seconds
   const navigate = useNavigate();
@@ -125,14 +127,14 @@ const CheckoutComponent: React.FC<CheckoutComponentType> = ({ onClose }) => {
   return (
     <>
       <div
-        className="fixed z-50 inset-0 flex items-center justify-center"
+        className="relative flex items-center justify-center"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
+        // style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
       >
         <div
-          className=" bg-gray-50 py-4 px-4 lg:py-8 w-[80vw] h-[95vh] overflow-y-scroll">
+          className=" bg-gray-50 py-4 px-4 lg:py-8 w-[80vw] relative top-[-5rem] rounded-2xl z-50">
           <div className="max-w-6xl mx-auto">
             <motion.div
               className="bg-white rounded-2xl shadow-lg overflow-hidden"
@@ -159,7 +161,7 @@ const CheckoutComponent: React.FC<CheckoutComponentType> = ({ onClose }) => {
                     Time left {formatTime(timeLeft)}
                   </motion.div>
                 </div>
-                <button
+                {/* <button
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   onClick={(e) => {
                     e.preventDefault();
@@ -167,7 +169,7 @@ const CheckoutComponent: React.FC<CheckoutComponentType> = ({ onClose }) => {
                   }}
                 >
                   <X className="w-6 h-6" />
-                </button>
+                </button> */}
               </motion.div>
 
               <div className="lg:flex">

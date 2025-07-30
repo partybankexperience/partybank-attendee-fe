@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import { MapPin, Calendar, Clock, Plus, Minus } from 'lucide-react';
 import xtasyGroove from "../../assets/images/XtasyGroove.png"
 // import { Modal } from '../../components/modal/Modal';
-import CheckoutComponent from '../checkout/CheckoutComponent';
+// import CheckoutComponent from '../checkout/CheckoutComponent';
 import TicketCard from './TestMe';
+import { useNavigate } from 'react-router';
+
 
 
 type TicketType = 'xtasyPass' | 'godMode' | 'xtasy';
@@ -17,8 +19,9 @@ const EventDetailContainer: React.FC = () => {
     xtasy: 0
   });
  
-  const [isOpen, setIsOpen] = useState<boolean>(false)
+  // const [isOpen, setIsOpen] = useState<boolean>(false)
 
+  const navigate = useNavigate();
   const ticketPrices: Tickets = {
     xtasyPass: 5000,
     godMode: 10000,
@@ -57,15 +60,15 @@ const EventDetailContainer: React.FC = () => {
     }
   };
 
-  const onClose = ()=>{
-    setIsOpen(false)
-  }
+  // const onClose = ()=>{
+  //   setIsOpen(false)
+  // }
 
   return (
     <div className="min-h-screen bg-white rounded-b-3xl mx-[2rem] shadow-2xl">
-      {
+      {/* {
         isOpen && <CheckoutComponent onClose={onClose} />
-      }
+      } */}
         
       <div className="container mx-auto px-4 py-8 lg:py-16">
         {/* <div className="lg:flex gap-8 lg:gap-16 items-start justify-center"> */}
@@ -239,7 +242,7 @@ const EventDetailContainer: React.FC = () => {
                 className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors shadow-lg"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setIsOpen(true)}
+                onClick={() => navigate('/checkout')}
               >
                 Next
               </motion.button>
