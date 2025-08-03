@@ -4,6 +4,10 @@ import Checkout from "./pages/checkout/Checkout"
 import Login from "./pages/onBoarding/Login"
 import SignUp from "./pages/onBoarding/SignUp"
 import EmailVerification from "./pages/onBoarding/EmailVerification"
+import EventDetails from "./pages/EventDetails"
+import Confirmation from "./pages/Confirmation"
+import Profile from "./pages/Profile"
+
 
 
 function App() {
@@ -26,6 +30,22 @@ function App() {
       <Route
         path="/email-verification"
         element={<EmailVerification/>} // Replace with your Home component
+      />
+      <Route
+        path="/checkout"
+        element={<Checkout/>} // Replace with your About component
+      />
+      <Route
+        path="/event-details"
+        element={<EventDetails/>} // Replace with your About component
+      />
+      <Route
+        path="/confirmation"
+        element={<Confirmation/>} // Replace with your About component
+      />
+      <Route
+        path="/profile"
+        element={<Profile/>} // Replace with your About component
       />
       <Route
         path="/checkout"

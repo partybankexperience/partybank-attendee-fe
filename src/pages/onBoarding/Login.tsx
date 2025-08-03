@@ -25,7 +25,7 @@ const Login = () => {
         setTimeout(() => {
         setisLoading(false);
         // Navigate to the next page or handle success
-        navigate('/dashboard');
+        navigate('/confirmation');
         }, 2000);
     };
   return (
