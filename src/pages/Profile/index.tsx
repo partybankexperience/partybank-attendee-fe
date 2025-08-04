@@ -1,7 +1,6 @@
-import React from "react";
 import HomeLayout from "../../components/layouts/HomeLayout";
-// import ProfileComponent from './Profile_page_component';
 import Profile_layout from "./Profile_layout";
+// import ProfileComponent from './Profile_page_component';
 
 const Profile = () => {
   return (

@@ -1,12 +1,15 @@
-import { useRef, useState } from "react";
-import LoginLayout from "../../components/layouts/LoginLayout"
+import { useEffect, useRef, useState } from "react";
+import LoginLayout from "../../components/layouts/LoginLayout";
 import { useLocation, useNavigate } from "react-router";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import DefaultInput from "../../components/inputs/DefaultInput";
+import { LoginUser } from "../../containers/onBoardingApi";
+import { Storage } from "../../stores/InAppStorage";
+import { errorAlert } from "../../components/alerts/ToastService";
 
 const Login = () => {
-    const [email, setemail] = useState('');
-  const [password, setpassword] = useState('');
+  const [email, setemail] = useState("");
+  const [password, setpassword] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [isLoading, setisLoading] = useState(false);
   // const [isGoogleLoading, setisGoogleLoading] = useState(false)
@@ -15,22 +18,60 @@ const Login = () => {
   const passwordRef = useRef<any>(null);
   const navigate = useNavigate();
 
-//   const location = useLocation();
-//   const queryParams = new URLSearchParams(location.search);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const message = queryParams.get("message");
+  const state = queryParams.get("state");
 
-    const handleSignIn = (e: React.FormEvent) => {
-        e.preventDefault();
-        setisLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-        setisLoading(false);
-        // Navigate to the next page or handle success
-        navigate('/confirmation');
-        }, 2000);
-    };
+  useEffect(() => {
+    if (state === "notAuthenticated" && message) {
+      errorAlert("Error", decodeURIComponent(message));
+      const timer = setTimeout(() => {
+        navigate("/login", { replace: true, state: null });
+      }, 2000); // Give time for user to read the notification
+      return () => clearTimeout(timer); // Cleanup the timer on component unmount
+    }
+  }, [state, message]);
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (emailError) {
+      if (emailError && emailRef.current) {
+        emailRef.current.focus();
+      }
+      return;
+    }
+    if (passwordError) {
+      if (passwordError && passwordRef.current) {
+        passwordRef.current.focus();
+      }
+      return;
+    }
+    const redirect=Storage?.getItem("redirect")|| null;
+    try {
+      setisLoading(true);
+      const res = await LoginUser(email, password);
+      Storage.setItem("token", res.accessToken);
+      Storage.setItem("user", res.user);
+      console.log(res, "Login Response");
+      if (redirect) {
+        Storage.removeItem("redirect");
+        navigate(redirect);
+        return;
+      }else navigate(-1);
+    } catch (error) {
+      console.log(error);
+      setisLoading(false);
+    } finally {
+      setisLoading(false);
+    }
+  };
   return (
     <LoginLayout>
-        <form className="grid mt-[2vh] md:mt-[2vh] gap-[3vh] h-fit w-full " onSubmit={handleSignIn}>
+      <form
+        className="grid mt-[2vh] md:mt-[2vh] gap-[3vh] h-fit w-full "
+        onSubmit={handleSignIn}
+      >
         <div className="grid gap-[10px] text-center md:text-left">
           <h1 className=" text-3xl font-semibold">Login to your account</h1>
           <p className=" text-lightGrey font-normal text-sm">
@@ -68,7 +109,7 @@ const Login = () => {
             <div className="text-right m-0 ">
               <a
                 className="text-[14px] text-red cursor-pointer hover:underline"
-                onClick={() => navigate('/forgot-password')}
+                onClick={() => navigate("/forgot-password")}
                 role="link"
                 tabIndex={0}
               >
@@ -102,10 +143,10 @@ const Login = () => {
           </DefaultButton> */}
         </div>
         <p className="text-[#A7A5A6]  text-[14px]  mt-[0.5vh] text-center">
-          Don’t have an account?{'  '}
+          Don’t have an account?{"  "}
           <span
             className="text-red cursor-pointer hover:text-deepRed"
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate("/signup")}
             role="link"
             tabIndex={0}
           >
@@ -114,7 +155,7 @@ const Login = () => {
         </p>
       </form>
     </LoginLayout>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

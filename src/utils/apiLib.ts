@@ -18,5 +18,12 @@ export const endPoints: endPointlistTypes = {
     method: 'POST',
     headers,
     auth: false,
-  }
+  },
+  // events
+  getEvents: {
+    url: '/events',
+    method: 'GET',
+    headers,
+    // auth: true,
+  },
 };

@@ -1,4 +1,4 @@
-import  { ReactNode, useEffect, useState } from "react";
+import  {  useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { Storage } from "../stores/InAppStorage";
 
@@ -16,7 +16,7 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     if (!token) {
       // Redirect to login with query params
       const message = encodeURIComponent("You must be logged in to access this page.");
-      navigate(`/?state=notAuthenticated&message=${message}`, { replace: true });
+      navigate(`/login?state=notAuthenticated&message=${message}`, { replace: true });
       setAuthorized(false);
       return;
     }

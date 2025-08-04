@@ -10,15 +10,15 @@ export const formatDate = (dateString: string) => {
 };
 
 // Utility function to format time
-export const formatTime = (timeString: string) => {
-  const [hours, minutes] = timeString.split(':');
-  const time = new Date();
-  time.setHours(parseInt(hours), parseInt(minutes));
-  return time.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
+export const formatTime = (time: string): string => {
+  const [hourStr, minute] = time.split(':');
+  let hour = parseInt(hourStr, 10);
+  const period = hour >= 12 ? 'pm' : 'am';
+
+  if (hour === 0) hour = 12; // Midnight edge case
+  else if (hour > 12) hour -= 12;
+
+  return `${hour}:${minute}${period}`;
 };
 
 // Utility function to create time range display

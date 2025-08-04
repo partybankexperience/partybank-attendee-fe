@@ -4,47 +4,35 @@ import React from 'react';
 // Event Card Skeleton
 export const EventCardSkeleton = () => {
   return (
-    <div className="relative rounded-[9px] border border-[#E1E1E1] h-[347px] min-w-[180px] w-full animate-pulse">
-      {/* Image skeleton */}
-      <div className="h-[150px] rounded-t-[9px] w-full bg-gray-200"></div>
-      
-      {/* Content skeleton */}
-      <div className="grid">
-        <div className="p-[15px] border-b border-[#E1E1E1] grid gap-[12px]">
-          <div className="grid gap-[5px]">
-            {/* Date and time skeleton */}
-            <div className="h-3 bg-gray-200 rounded w-32"></div>
-            {/* Event name skeleton */}
-            <div className="h-5 bg-gray-200 rounded w-full"></div>
+    <div className="animate-pulse rounded-[15px] border border-[#E1E1E1] h-[17.5rem] min-w-[180px] w-full bg-white">
+      <div className="h-[150px] rounded-t-[9px] w-full bg-gray-200" />
+      <div className="p-[15px] grid gap-[12px]">
+        <div className="grid gap-[5px]">
+          <div className="h-[20px] bg-gray-200 rounded w-[80%]" />
+          <div className="flex items-center gap-[9px]">
+            <div className="w-[16px] h-[16px] bg-gray-300 rounded-full" />
+            <div className="h-[14px] bg-gray-200 rounded w-full" />
           </div>
-          {/* Location skeleton */}
-          <div className="flex items-center gap-[6px]">
-            <div className="w-4 h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-24"></div>
+          <div className="flex items-center gap-[9px]">
+            <div className="w-[16px] h-[16px] bg-gray-300 rounded-full" />
+            <div className="h-[14px] bg-gray-200 rounded w-full" />
           </div>
-        </div>
-        
-        {/* Progress section skeleton */}
-        <div className="grid gap-[10px] p-[15px]">
-          {/* Progress bar skeleton */}
-          <div className="w-full h-[8px] bg-gray-200 rounded-full"></div>
-          
-          {/* Stats skeleton */}
-          <div className="flex justify-between items-start">
-            <div className="grid gap-1">
-              <div className="h-3 bg-gray-200 rounded w-16"></div>
-              <div className="h-4 bg-gray-200 rounded w-12"></div>
-            </div>
-            <div className="grid gap-1">
-              <div className="h-3 bg-gray-200 rounded w-16"></div>
-              <div className="h-4 bg-gray-200 rounded w-12"></div>
-            </div>
+          <div className="flex items-center gap-[9px]">
+            <div className="w-[16px] h-[16px] bg-gray-300 rounded-full" />
+            <div className="h-[14px] bg-gray-200 rounded w-full" />
+          </div>
+          <div className="flex items-center gap-[9px] mt-2">
+            <div className="h-[18px] w-[70px] bg-gray-200 rounded" />
+            <div className="h-[14px] w-[80px] bg-gray-200 rounded" />
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+export default EventCardSkeleton;
+
 
 // Series Card Skeleton
 export const SeriesCardSkeleton = () => {

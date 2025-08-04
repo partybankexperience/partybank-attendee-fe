@@ -200,7 +200,7 @@ const DefaultInput = forwardRef<HTMLInputElement, DefaultInputProps>(
                 }
                 if (onKeyDown) onKeyDown(e);
               }}
-              min={type === 'date' ? min || new Date().toISOString().split('T')[0] : undefined}
+              min={type === 'date' ? min : undefined}
               ref={ref}
             />
           )}

@@ -15,6 +15,7 @@ export type endpointTypes = {
 export type endPointlistTypes = {
  
   login: endpointTypes;
+  getEvents: endpointTypes;
   
 };
 

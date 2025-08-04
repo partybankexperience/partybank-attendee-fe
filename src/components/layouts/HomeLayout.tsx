@@ -17,7 +17,10 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
     .split("/")
     .filter((x) => x)
     .map((segment) => capitalize(segment));
-
+    const isEventDetailsPage = location.pathname.startsWith("/event-details/");
+    const slug = isEventDetailsPage ? pathnames[pathnames.length - 1] : "";
+    const formatSlug = (text: string) =>
+        text.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   return (
     <>
       {/* Small sidebar */}
@@ -31,7 +34,8 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
           aria-label="Go back to previous page"
         >
           <FaArrowLeft className="mr-[0.5rem]" />
-          {pathnames}
+          {isEventDetailsPage ? formatSlug(slug) : pathnames.join(" / ")}
+
         </button>
       </nav>
 
@@ -89,7 +93,7 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
           aria-label="Breadcrumb"
         >
           <a href="/" className="text-grey400">Home</a>
-          {pathnames.length > 0 && <IoIosArrowForward className="text-[1.1rem]" />}
+          {/* {pathnames.length > 0 && <IoIosArrowForward className="text-[1.1rem]" />}
           {pathnames.map((name, index) => {
             const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
             const isLast = index === pathnames.length - 1;
@@ -106,7 +110,29 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
                 )}
               </span>
             );
-          })}
+          })} */}
+          {isEventDetailsPage && slug && (
+    <>
+      <IoIosArrowForward className="text-[1.1rem]" />
+      <span className="text-white" aria-current="page">{formatSlug(slug)}</span>
+    </>
+  )}
+  {!isEventDetailsPage && pathnames.map((name, index) => {
+    const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
+    const isLast = index === pathnames.length - 1;
+    return (
+      <span key={name} className="flex items-center gap-[6px]">
+        {isLast ? (
+          <span className="text-white" aria-current="page">{name}</span>
+        ) : (
+          <>
+            <a href={routeTo} className="text-grey400">{name}</a>
+            <IoIosArrowForward className="text-[1.1rem]" />
+          </>
+        )}
+      </span>
+    );
+  })}
         </nav>
       </div>
 

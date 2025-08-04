@@ -430,7 +430,7 @@ const CheckoutComponent: React.FC = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
-                      navigate('/login')
+                      navigate('/confirmation')
                       console.log("Processing payment...", formData);
                     }}
                   >

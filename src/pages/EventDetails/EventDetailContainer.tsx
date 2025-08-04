@@ -6,6 +6,7 @@ import xtasyGroove from "../../assets/images/XtasyGroove.png"
 // import CheckoutComponent from '../checkout/CheckoutComponent';
 import TicketCard from './TestMe';
 import { useNavigate } from 'react-router';
+import { Storage } from '../../stores/InAppStorage';
 
 
 
@@ -63,7 +64,13 @@ const EventDetailContainer: React.FC = () => {
   // const onClose = ()=>{
   //   setIsOpen(false)
   // }
-
+function handleNext() {
+  const user=Storage.getItem('user')
+  if(!user){ navigate('/login')
+    Storage.setItem('redirectPath', '/checkout')
+  }
+  else navigate('/checkout')
+}
   return (
     <div className="min-h-screen bg-white rounded-b-3xl mx-[2rem] shadow-2xl">
       {/* {
@@ -242,7 +249,7 @@ const EventDetailContainer: React.FC = () => {
                 className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors shadow-lg"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/checkout')}
+                onClick={() => handleNext()}
               >
                 Next
               </motion.button>
