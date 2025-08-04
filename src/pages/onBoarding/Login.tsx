@@ -6,6 +6,7 @@ import DefaultInput from "../../components/inputs/DefaultInput";
 import { LoginUser } from "../../containers/onBoardingApi";
 import { Storage } from "../../stores/InAppStorage";
 import { errorAlert } from "../../components/alerts/ToastService";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 const Login = () => {
   const [email, setemail] = useState("");
@@ -22,7 +23,7 @@ const Login = () => {
   const queryParams = new URLSearchParams(location.search);
   const message = queryParams.get("message");
   const state = queryParams.get("state");
-
+const { setUser } = useAuthStore();
   useEffect(() => {
     if (state === "notAuthenticated" && message) {
       errorAlert("Error", decodeURIComponent(message));
@@ -51,14 +52,13 @@ const Login = () => {
     try {
       setisLoading(true);
       const res = await LoginUser(email, password);
-      Storage.setItem("token", res.accessToken);
-      Storage.setItem("user", res.user);
+      setUser(res);
       console.log(res, "Login Response");
       if (redirect) {
         Storage.removeItem("redirect");
         navigate(redirect);
         return;
-      }else navigate(-1);
+      }else navigate('/');
     } catch (error) {
       console.log(error);
       setisLoading(false);

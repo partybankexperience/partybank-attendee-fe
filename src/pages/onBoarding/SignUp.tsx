@@ -1,9 +1,12 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LoginLayout from "../../components/layouts/LoginLayout"
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import DefaultInput from "../../components/inputs/DefaultInput";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import RadioButton from "../../components/inputs/RadioButton";
+import { SignUpUser } from "../../containers/onBoardingApi";
+import { useAuthStore } from "../../stores/useAuthStore";
+import { successAlert } from "../../components/alerts/ToastService";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -20,12 +23,65 @@ const SignUp = () => {
   const lastNameRef = useRef<any>(null);
   const passwordRef = useRef<any>(null);
   const [gender, setGender] = useState("")
-
+  const [genderError, setGenderError] = useState(false);
+  const genderRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<any>(null);
-  const location = useLocation();
-  function handleRegisterUser(e: React.FormEvent) {
+  const { setUser } = useAuthStore();
+  // const location = useLocation();
+  async function handleRegisterUser(e: React.FormEvent) {
     e.preventDefault();
-    setisLoading(true); }
+   
+    if (firstNameError) {
+      if (firstNameRef.current) {
+        firstNameRef.current.focus();
+      }
+      return;
+    }
+    if (lastNameError) {
+      if (lastNameRef.current) {
+        lastNameRef.current.focus();
+      }
+      return;
+    }
+    if (emailError) {
+      if (emailRef.current) {
+        emailRef.current.focus();
+      }
+      return;
+    }
+    if (gender === "") {
+      setGenderError(true);
+      genderRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    } else {
+      setGenderError(false);
+    }
+    if (passwordError) {
+      if (passwordRef.current) {
+        passwordRef.current.focus();
+      }
+      return;
+    }
+    
+    // Handle registration logic here
+    const genderSelection:any=gender!==''?gender:'other'
+    try {
+      setisLoading(true)
+      const res=await SignUpUser(email,password,firstName,lastName,genderSelection)
+      setUser(res)
+      successAlert("Success",res.message)
+      navigate('/email-verification',{state:{email}})
+    } catch (error) {
+      
+    } finally {
+      setisLoading(false)
+    }
+    ; }
+
+    useEffect(() => {
+      setGenderError(false)
+    }, [gender])
+    
   return (
     <LoginLayout><form className="grid mt-[2vh] md:mt-[2vh] gap-[3vh] h-fit " onSubmit={handleRegisterUser}>
     <div className="grid gap-[10px] text-center md:text-left">
@@ -42,6 +98,7 @@ const SignUp = () => {
         required
         value={firstName}
         setValue={setFirstName}
+        setExternalError={setFirstNameError}
       />
       <DefaultInput
         id="signupLastName"
@@ -70,7 +127,7 @@ const SignUp = () => {
         ref={emailRef}
         setExternalError={setEmailError}
       />
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" ref={genderRef}>
       <span className="text-[1rem] font-semibold text-black">Gender</span>
 
       <div className="flex gap-6">
@@ -89,6 +146,9 @@ const SignUp = () => {
           onChange={setGender}
         />
       </div>
+      {genderError && (
+    <p className="text-red text-sm mt-1">Please select your gender.</p>
+  )}
     </div>
       <DefaultInput
         id="signupPassword"

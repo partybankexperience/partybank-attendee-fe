@@ -19,6 +19,24 @@ export const endPoints: endPointlistTypes = {
     headers,
     auth: false,
   },
+  signUp:{
+    url: '/auth/attendee-signup',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
+  verifyOtp:{
+    url: '/auth/verify-otp',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
+  resendOtp:{
+    url: '/auth/resend-otp',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
   // events
   getEvents: {
     url: '/events',

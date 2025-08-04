@@ -3,16 +3,20 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/images/logo.svg";
+import { FiUser } from "react-icons/fi";
 import backgroundImage from "../../assets/images/backgroundImage.svg";
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 import React from "react";
 
+import DefaultButton from "../buttons/DefaultButton";
+import { useAuthStore } from "../../stores/useAuthStore";
+
 const HomeLayout = ({ children }: React.PropsWithChildren) => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const { user, logout } = useAuthStore();
   const pathnames = location.pathname
     .split("/")
     .filter((x) => x)
@@ -57,19 +61,37 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
             <a href="/contact" aria-label="Contact PartyBank">Contact Us</a>
           </li>
         </ul>
+        {user ? (
+  <div className="flex gap-[1.5rem] items-center">
+    {/* Profile icon link */}
+    <a
+      href="/profile"
+      className="text-primary text-[1.4rem]"
+      aria-label="Go to your profile"
+    >
+      <FiUser />
+    </a>
 
-        <div className="flex gap-[1.5rem] items-center">
-          <a href="/login" className="text-primary" aria-label="Create Account">
-            Create Account
-          </a>
-          <a
-            href="/login"
-            aria-label="Sign in to your account"
-            className="font-bold rounded-[8px] text-[16px] w-fit cursor-pointer disabled:cursor-not-allowed disabled:border-mutedBlueGrey bg-primary text-white hover:bg-pink focus:border-darkRed py-[10px] px-[32px]"
-          >
-            Sign In
-          </a>
-        </div>
+    {/* Logout button */}
+    <DefaultButton onClick={() => logout()} >
+    Sign Out
+    </DefaultButton>
+  </div>
+) : (
+  <div className="flex gap-[1.5rem] items-center">
+    <a href="/signup" className="text-primary" aria-label="Create Account">
+      Create Account
+    </a>
+    <a
+      href="/login"
+      aria-label="Sign in to your account"
+      className="font-bold rounded-[8px] text-[16px] w-fit cursor-pointer disabled:cursor-not-allowed disabled:border-mutedBlueGrey bg-primary text-white hover:bg-pink focus:border-darkRed py-[10px] px-[32px]"
+    >
+      Sign In
+    </a>
+  </div>
+)}
+
       </nav>
 
       {/* Background banner */}
@@ -93,6 +115,7 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
           aria-label="Breadcrumb"
         >
           <a href="/" className="text-grey400">Home</a>
+          <IoIosArrowForward className="text-[1.1rem]" />
           {/* {pathnames.length > 0 && <IoIosArrowForward className="text-[1.1rem]" />}
           {pathnames.map((name, index) => {
             const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
@@ -113,7 +136,6 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
           })} */}
           {isEventDetailsPage && slug && (
     <>
-      <IoIosArrowForward className="text-[1.1rem]" />
       <span className="text-white" aria-current="page">{formatSlug(slug)}</span>
     </>
   )}
@@ -130,6 +152,7 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
             <IoIosArrowForward className="text-[1.1rem]" />
           </>
         )}
+        
       </span>
     );
   })}

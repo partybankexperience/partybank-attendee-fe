@@ -3,11 +3,21 @@ import LoginLayout from "../../components/layouts/LoginLayout";
 import OTPInput from "react-otp-input";
 import { formatCountdownTimer } from "../../components/helpers/dateTimeHelpers";
 import DefaultButton from "../../components/buttons/DefaultButton";
+import { resendOTP, verifyOtp } from "../../containers/onBoardingApi";
+import { useAuthStore } from "../../stores/useAuthStore";
+import { Storage } from "../../stores/InAppStorage";
+import { useLocation, useNavigate } from "react-router";
+import maskEmail from "../../components/helpers/maskedEmail";
 
-const EmailVerification = ({ email }: any) => {
+const EmailVerification = () => {
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(600);
   const [isResendOTPLoading, setisResendOTPLoading] = useState(false);
+  const { setUser } = useAuthStore();
+  const redirect=Storage?.getItem("redirect")|| null;
+  const navigate=useNavigate()
+  const location=useLocation()
+  const email = location?.state?.email || "";
   // Countdown timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -19,7 +29,7 @@ const EmailVerification = ({ email }: any) => {
   const handleResendOtp = async () => {
     try {
       setisResendOTPLoading(true);
-      //   await resendOTP(email);
+        await resendOTP(email,'signup');
       setTimer(60); // Reset timer
     } catch (error) {
     } finally {
@@ -27,8 +37,21 @@ const EmailVerification = ({ email }: any) => {
     }
   };
   //   const encryptedEmail = email ? maskEmail(email) : "";
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if(otp===''||otp.length<0) return
+    try {
+        const res=await verifyOtp(otp,email)
+        setUser(res);
+        if (redirect) {
+                Storage.removeItem("redirect");
+                navigate(redirect);
+                return;
+              }else navigate('/');
+      console.log(res, "Login Response");
+    } catch (error:any) {
+        
+    }
   }
   return (
     <LoginLayout>
@@ -39,8 +62,8 @@ const EmailVerification = ({ email }: any) => {
         <div className="grid gap-[10px] text-center md:text-left">
           <h1 className=" text-3xl font-semibold">Email Verification</h1>
           <p className=" text-lightGrey font-normal text-sm">
-            Verification code has been send via email to janecopper02@gmail.com
-            {email}
+            Verification code has been send via email to 
+            {maskEmail(email) }
           </p>
           <div className="mt-[3rem] grid gap-[18px]">
             <OTPInput
