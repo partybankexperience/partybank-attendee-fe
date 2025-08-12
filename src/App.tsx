@@ -4,11 +4,12 @@ import Checkout from "./pages/checkout/Checkout";
 import Login from "./pages/onBoarding/Login";
 import SignUp from "./pages/onBoarding/SignUp";
 import EmailVerification from "./pages/onBoarding/EmailVerification";
-import EventDetails from "./pages/EventDetails";
-import Confirmation from "./pages/Confirmation";
 import Profile from "./pages/profile";
 import { useEffect } from "react";
 import PrivateRoute from "./utils/privateRoute";
+import EventDetails from "./pages/EventDetails/EventDetailContainer";
+import Confirmation from "./pages/Confirmation/TicketConfirmation";
+
 
 function App() {
   const location = useLocation();
@@ -36,7 +37,7 @@ function App() {
         element={<EmailVerification />}
       />
       <Route
-        path="/checkout"
+        path="/checkout/"
         element={
           <PrivateRoute>
             <Checkout />

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 // import { X, Calendar, Clock, MapPin, Ticket } from "lucide-react";
 import { Calendar, Clock, MapPin, Ticket } from "lucide-react";
- import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import xtasyGroove from "../../assets/images/XtasyGroove.png";
+// import cards from "../../assets/images/card.png";
 
 interface FormData {
   cardHolderName: string;
@@ -133,8 +135,8 @@ const CheckoutComponent: React.FC = () => {
         aria-labelledby="modal-title"
         // style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
       >
-        <div
-          className=" bg-gray-50 py-4 px-4 lg:py-8 w-[80vw] relative top-[-5rem] rounded-2xl z-50">
+        <div className=" bg-gray-50 py-4 px-4 lg:py-8 w-[95vw] md:w-[80vw] relative top-[-5rem]
+         rounded-2xl z-50">
           <div className="max-w-6xl mx-auto">
             <motion.div
               className="bg-white rounded-2xl shadow-lg overflow-hidden"
@@ -351,14 +353,15 @@ const CheckoutComponent: React.FC = () => {
 
                   {/* Event Details */}
                   <div className="mb-6">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                        <div className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-500 to-purple-800 flex items-center justify-center">
-                          <div className="text-white text-xs font-black text-center leading-tight">
-                            XTASY
-                            <br />
-                            GROOVE
-                          </div>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="rounded-lg overflow-hidden flex-shrink-0">
+                        <div>
+                          <img
+                            src={xtasyGroove}
+                            alt=""
+                            className="w-[5rem] md:w-[10rem] h-auto 
+                          max-h-[45rem] lg:w-[8rem] lg:h-[10rem]"
+                          />
                         </div>
                       </div>
                       <div>
@@ -430,7 +433,7 @@ const CheckoutComponent: React.FC = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
-                      navigate('/confirmation')
+                      navigate("/confirmation");
                       console.log("Processing payment...", formData);
                     }}
                   >
