@@ -26,22 +26,7 @@ const Login = () => {
   const queryParams = new URLSearchParams(location.search);
   const message = queryParams.get("message");
   const state = queryParams.get("state");
-  const { setUser } = useAuthStore();
-
-  useEffect(() => {
-    if (!emailExist && buttonClicked) {
-      const timer = setInterval(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
-
-      if (countdown === 0) {
-        navigate("/signup", { state: { email } });
-      }
-
-      return () => clearInterval(timer);
-    }
-  }, [emailExist, buttonClicked, countdown]);
-
+const { setUser } = useAuthStore();
   useEffect(() => {
     if (state === "notAuthenticated" && message) {
       errorAlert("Error", decodeURIComponent(message));
@@ -102,7 +87,7 @@ const Login = () => {
         Storage.removeItem("redirect");
         navigate(redirect);
         return;
-      }else navigate('/checkout');
+      } else navigate("/");
     } catch (error) {
       console.log(error);
       setisLoading(false);
@@ -125,22 +110,9 @@ const Login = () => {
       >
         <div className="grid gap-[10px] text-center md:text-left">
           <h1 className=" text-3xl font-semibold">Login to your account</h1>
-          {/* <p className=" text-lightGrey font-normal text-sm">
+          <p className=" text-lightGrey font-normal text-sm">
             Let’s sign in quickly to continue to your account.
-          </p> */}
-          {/* Ticket Summary */}
-          <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
-            <div className="flex justify-between items-center">
-              <p className="font-semibold">{ticket.title}</p>
-              <p className="text-sm text-darkGrey">
-                {ticket.qty} × {ticket.price}
-              </p>
-            </div>
-            {/* <span className="font-bold text-red">{ticket.price}</span> */}
-            <p className="text-softRed text-[14px] text-left">
-              You're almost done, just log in to complete your purchase.
-            </p>
-          </div>
+          </p>
         </div>
 
         <div className="grid w-full gap-[12px] mt-4">
@@ -157,6 +129,7 @@ const Login = () => {
             setExternalError={setEmailError}
             // setExternalError={setEmailError}
           />
+          {/* {emailExist && buttonClicked? (
           {/* {emailExist && buttonClicked? (
           <div>
             <DefaultInput
