@@ -3,7 +3,7 @@ import LoginLayout from "../../components/layouts/LoginLayout";
 import { useLocation, useNavigate } from "react-router";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import DefaultInput from "../../components/inputs/DefaultInput";
-import { LoginUser } from "../../containers/onBoardingApi";
+import { emailExists, LoginUser } from "../../containers/onBoardingApi";
 import { Storage } from "../../stores/InAppStorage";
 import { errorAlert } from "../../components/alerts/ToastService";
 import { useAuthStore } from "../../stores/useAuthStore";
@@ -13,8 +13,11 @@ const Login = () => {
   const [password, setpassword] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [isLoading, setisLoading] = useState(false);
+  const [emailExist, setemailExist] = useState(false);
+  const [buttonClicked, setbuttonClicked] = useState(false);
   // const [isGoogleLoading, setisGoogleLoading] = useState(false)
   const [passwordError, setPasswordError] = useState(false);
+  const [countdown, setCountdown] = useState(10);
   const emailRef = useRef<any>(null);
   const passwordRef = useRef<any>(null);
   const navigate = useNavigate();
@@ -23,7 +26,22 @@ const Login = () => {
   const queryParams = new URLSearchParams(location.search);
   const message = queryParams.get("message");
   const state = queryParams.get("state");
-const { setUser } = useAuthStore();
+  const { setUser } = useAuthStore();
+
+  useEffect(() => {
+    if (!emailExist && buttonClicked) {
+      const timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+
+      if (countdown === 0) {
+        navigate("/signup", { state: { email } });
+      }
+
+      return () => clearInterval(timer);
+    }
+  }, [emailExist, buttonClicked, countdown]);
+
   useEffect(() => {
     if (state === "notAuthenticated" && message) {
       errorAlert("Error", decodeURIComponent(message));
@@ -34,6 +52,32 @@ const { setUser } = useAuthStore();
     }
   }, [state, message]);
 
+  const checkIfEmailExists = async (e: React.FormEvent) => {
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // return emailRegex.test(email);
+    e.preventDefault();
+    if (emailError) {
+      if (emailError && emailRef.current) {
+        emailRef.current.focus();
+      }
+      return;
+    }
+    try {
+      const res = await emailExists(email);
+      console.log(res, "Email Exists Response");
+
+      setemailExist(res.exists);
+      if (!res.exists) {
+        setTimeout(() => {
+          navigate("/signup", { state: { email } });
+        }, 10000);
+      } else handleSignIn(e);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setbuttonClicked(true);
+    }
+  };
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (emailError) {
@@ -48,7 +92,7 @@ const { setUser } = useAuthStore();
       }
       return;
     }
-    const redirect=Storage?.getItem("redirect")|| null;
+    const redirect = Storage?.getItem("redirect") || null;
     try {
       setisLoading(true);
       const res = await LoginUser(email, password);
@@ -58,7 +102,7 @@ const { setUser } = useAuthStore();
         Storage.removeItem("redirect");
         navigate(redirect);
         return;
-      }else navigate('/');
+      } else navigate("/");
     } catch (error) {
       console.log(error);
       setisLoading(false);
@@ -66,18 +110,39 @@ const { setUser } = useAuthStore();
       setisLoading(false);
     }
   };
+  // Dummy ticket data (replace with real cart data later)
+  const ticket = {
+    title: "Party Night Ticket",
+    price: "$20",
+    qty: 1,
+  };
+
   return (
     <LoginLayout>
       <form
         className="grid mt-[2vh] md:mt-[2vh] gap-[3vh] h-fit w-full "
-        onSubmit={handleSignIn}
+        onSubmit={checkIfEmailExists}
       >
         <div className="grid gap-[10px] text-center md:text-left">
           <h1 className=" text-3xl font-semibold">Login to your account</h1>
-          <p className=" text-lightGrey font-normal text-sm">
+          {/* <p className=" text-lightGrey font-normal text-sm">
             Let’s sign in quickly to continue to your account.
-          </p>
+          </p> */}
+          {/* Ticket Summary */}
+          <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
+            <div className="flex justify-between items-center">
+              <p className="font-semibold">{ticket.title}</p>
+              <p className="text-sm text-darkGrey">
+                {ticket.qty} × {ticket.price}
+              </p>
+            </div>
+            {/* <span className="font-bold text-red">{ticket.price}</span> */}
+            <p className="text-softRed text-[14px] text-left">
+              You're almost done, just log in to complete your purchase.
+            </p>
+          </div>
         </div>
+
         <div className="grid w-full gap-[12px] mt-4">
           <DefaultInput
             id="loginEmail"
@@ -92,6 +157,7 @@ const { setUser } = useAuthStore();
             setExternalError={setEmailError}
             // setExternalError={setEmailError}
           />
+          {/* {emailExist && buttonClicked? (
           <div>
             <DefaultInput
               id="loginPassword"
@@ -117,6 +183,50 @@ const { setUser } = useAuthStore();
               </a>
             </div>
           </div>
+
+          ):(
+            <p className="text-red text-[14px]">Email does not exist, You would be redirected to signup in 10s</p>
+          )} */}
+          {buttonClicked &&
+            (emailExist ? (
+              <div>
+                <DefaultInput
+                  id="loginPassword"
+                  label="Password"
+                  placeholder="********"
+                  type="password"
+                  style="!w-full"
+                  value={password}
+                  setValue={setpassword}
+                  required
+                  ref={passwordRef}
+                  setExternalError={setPasswordError}
+                  classname="!mb-0"
+                />
+                <div className="text-right m-0">
+                  <a
+                    className="text-[14px] text-red cursor-pointer hover:underline"
+                    onClick={() => navigate("/forgot-password")}
+                  >
+                    Forgot password?
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-red text-[14px] animate-fadeIn">
+                <p>We couldn’t find an account with that email.</p>
+                <p>
+                  Creating one only takes a moment — we’ll take you there in{" "}
+                  <strong>{countdown}</strong> seconds...
+                </p>
+                <button
+                  className="mt-2 text-blue underline"
+                  onClick={() => navigate("/signup", { state: { email } })}
+                >
+                  Go to Sign Up Now
+                </button>
+              </div>
+            ))}
         </div>
         <div className="mt-4 grid gap-[10px]">
           <DefaultButton
@@ -124,7 +234,7 @@ const { setUser } = useAuthStore();
             size="normal"
             type="default"
             className="w-full"
-            onClick={() => handleSignIn}
+            onClick={() => checkIfEmailExists}
             submitType="submit"
             isLoading={isLoading}
           >

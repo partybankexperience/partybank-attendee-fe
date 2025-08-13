@@ -8,6 +8,13 @@ const LoginUser = async (email: string, password: string): Promise<any> => {
     return response;
   };
 
+  const emailExists = async (email: string): Promise<any> => {
+    const response = await apiCall({
+      name: 'emailExists',
+      data: { email },
+    });
+    return response;
+  };
 const SignUpUser = async (email: string, password: string,firstName:string,lastName:string,gender:'male'|'female'|'other'): Promise<any> => {
     const response = await apiCall({
       name: 'signUp',
@@ -30,4 +37,4 @@ const resendOTP=async(email:any,purpose:"signup"|"password"): Promise<any> => {
     });
     return response;
   };
-export { LoginUser, SignUpUser,verifyOtp,resendOTP };
+export { LoginUser, SignUpUser,verifyOtp,resendOTP,emailExists };
