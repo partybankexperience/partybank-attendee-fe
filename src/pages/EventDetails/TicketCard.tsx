@@ -31,7 +31,7 @@ const TicketCard = ({
   return (
     <div
       className="relative w-full bg-white rounded-xl overflow-hidden 
-          md:h-[8rem] flex items-center"
+          md:h-[5rem] flex items-center"
     >
       <div className=" w-full h-full flex">
         {/* Ticket border with rounded corners and pink outline */}
@@ -45,13 +45,13 @@ const TicketCard = ({
         >
           {/* Ticket details: name and price */}
           <div className="flex flex-col  h-full">
-            <span className="text-lg font-semibold text-[#231F20] uppercase cursor-pointer red-hat-display"
+            <span className="text-[.9rem] font-semibold text-[#231F20] uppercase cursor-pointer red-hat-display"
              title={ticketName}
             >
               {/* {ticketName} */}
               {truncateWords(ticketName, 2)}
             </span>
-            <span className="text-xl font-bold text-primary mt-1 red-hat-display">
+            <span className="text-[.8rem] font-semibold text-primary mt-1 red-hat-display">
               {currency}
               {price.toLocaleString()}
             </span>

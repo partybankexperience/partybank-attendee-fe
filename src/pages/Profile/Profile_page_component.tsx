@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Edit3, ArrowLeft } from "lucide-react";
-import ProfilePicture from "../Profile/Profile_Picture";
+import ProfilePicture from "./Profile_Picture";
 
 const ProfileComponent = () => {
   const [formData, setFormData] = useState({

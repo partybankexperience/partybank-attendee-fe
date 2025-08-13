@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { User, Ticket, Settings, LogOut, X } from "lucide-react";
-import ProfileComponent from "../Profile/Profile_page_component";
-import TicketManagement from "../Profile/Ticket";
-import Profile_Settings from "../Profile/Settings";
+import ProfileComponent from "./Profile_page_component";
+import TicketManagement from "./Ticket";
+import Profile_Settings from "./Settings";
+
 
 
 

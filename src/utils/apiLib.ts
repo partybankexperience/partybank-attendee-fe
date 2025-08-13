@@ -37,6 +37,12 @@ export const endPoints: endPointlistTypes = {
     headers,
     auth: false,
   },
+  emailExists:{
+    url: '/auth/check-email',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
   // events
   getEvents: {
     url: '/events',

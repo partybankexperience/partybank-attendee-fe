@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import LoginLayout from "../../components/layouts/LoginLayout"
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import DefaultInput from "../../components/inputs/DefaultInput";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import RadioButton from "../../components/inputs/RadioButton";
@@ -27,7 +27,8 @@ const SignUp = () => {
   const genderRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<any>(null);
   const { setUser } = useAuthStore();
-  // const location = useLocation();
+  const location = useLocation();
+  const emailFromLocation = location?.state?.email || "";
   async function handleRegisterUser(e: React.FormEvent) {
     e.preventDefault();
    
@@ -82,11 +83,36 @@ const SignUp = () => {
       setGenderError(false)
     }, [gender])
     
+    useEffect(() => {
+      if (emailFromLocation) {
+        setemail(emailFromLocation);
+      }
+    }, [])
+    // Dummy ticket data (replace with real cart data later)
+  const ticket = {
+    title: "Party Night Ticket",
+    price: "$20",
+    qty: 1,
+  };
+
   return (
-    <LoginLayout><form className="grid mt-[2vh] md:mt-[2vh] gap-[3vh] h-fit " onSubmit={handleRegisterUser}>
+    <LoginLayout><form className="grid mt-[2vh] md:mt-[0vh] gap-[2vh] h-fit " onSubmit={handleRegisterUser}>
     <div className="grid gap-[10px] text-center md:text-left">
       <h1 className="text-black text-3xl font-semibold">Create an Account</h1>
-      <p className="text-lightGrey font-normal text-sm">Let’s sign up quickly to get stated.</p>
+      {/* <p className="text-lightGrey font-normal text-sm">Let’s sign up quickly to get stated.</p> */}
+      {/* Ticket Summary */}
+      <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
+            <div className="flex justify-between items-center">
+              <p className="font-semibold">{ticket.title}</p>
+              <p className="text-sm text-darkGrey">
+                {ticket.qty} × {ticket.price}
+              </p>
+            </div>
+            {/* <span className="font-bold text-red">{ticket.price}</span> */}
+            <p className="text-softRed text-[14px] text-left">
+            You were checking out
+            </p>
+          </div>
     </div>
     <div className="grid md:grid-cols-2 gap-[18px]">
       <DefaultInput

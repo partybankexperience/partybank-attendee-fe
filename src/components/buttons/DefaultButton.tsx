@@ -1,5 +1,6 @@
 import React from "react";
 import { FaSpinner } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 type ButtonProps = {
   variant?: "primary" | "secondary" | "black" | "tertiary";
@@ -52,11 +53,13 @@ const DefaultButton = ({
   const showSpinner = isLoading;
   const isButtonDisabled = disabled || isLoading;
   return (
-    <button
+    <motion.button
       type={submitType}
       className={`${baseStyle} ${sizeStyle} ${variantClasses[variant]} ${className}`}
       disabled={isButtonDisabled}
       onClick={onClick}
+      whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
     >
       <div className="flex items-center justify-center">
         {showSpinner ? (
@@ -69,7 +72,7 @@ const DefaultButton = ({
           </>
         )}
       </div>
-    </button>
+    </motion.button>
   );
 };
 

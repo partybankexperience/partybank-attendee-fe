@@ -125,7 +125,7 @@ const Home = () => {
    <div className="h-fit  top-[-10rem] relative md:top-[-4.5rem] pt-[30px] px-[10px] md:px-[9rem]">
 
         {/* Top Pagination */}
-        <PaginationControls />
+        {/* <PaginationControls /> */}
 <p className="text-[#918F90] text-[.9rem]">{events?.length || 0} events</p>
      
       <div className="grid md:grid-cols-4 gap-[20px]">
