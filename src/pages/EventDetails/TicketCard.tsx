@@ -30,40 +30,40 @@ const TicketCard = ({
 
   return (
     <div
-      className="relative w-full bg-transparent rounded-xl shadow-md overflow-hidden 
+      className="relative w-full bg-white rounded-xl overflow-hidden 
           md:h-[8rem] flex items-center"
     >
-      <div className=" w-full">
+      <div className=" w-full h-full flex">
         {/* Ticket border with rounded corners and pink outline */}
-        <div className="absolute inset-0 border-2 border-pink-400 rounded-xl poin ter-events-none"></div>
+        <div className="absolute inset-0 border-2 border-primary rounded-xl poin ter-events-none"></div>
 
         {/* Content wrapper with padding */}
         <motion.div
-          className="p-4 flex items-center justify-between w-full "
+          className="p-4 flex items-center justify-between w-full h-full "
           // whileHover={{ scale: 1.02 }}
           // transition={{ type: "spring", stiffness: 300 }}
         >
           {/* Ticket details: name and price */}
-          <div className="flex flex-col ">
-            <span className="text-lg font-bold text-gray-800 uppercase cursor-pointer"
+          <div className="flex flex-col  h-full">
+            <span className="text-lg font-semibold text-[#231F20] uppercase cursor-pointer red-hat-display"
              title={ticketName}
             >
               {/* {ticketName} */}
               {truncateWords(ticketName, 2)}
             </span>
-            <span className="text-xl font-semibold text-pink-600 mt-1">
+            <span className="text-xl font-bold text-primary mt-1 red-hat-display">
               {currency}
               {price.toLocaleString()}
             </span>
           </div>
 
           {/* Vertical dashed line separator */}
-          <div className="absolute right-[160px] top-0 bottom-0 flex items-center justify-center ">
+          <div className="absolute right-[48%] md:right-[46.5%] lg:right-[10rem] top-0 bottom-0 flex items-center justify-center ">
             <div className="border-l-2 border-dashed border-pink-300 h-full my-2"></div>
           </div>
 
           {/* Ticket tear-off perforations */}
-          <div className="absolute right-[150px] top-0 bottom-0 flex flex-col justify-between h-full">
+          <div className="absolute right-[45%] lg:left-[16.8rem] lg:w-[60%] top-0 bottom-0 flex flex-col justify-between h-full">
             <div className="w-5 h-5 bg-faintPink rounded-full -ml-2 -mt-2 border-2 border-pink-400"></div>
             <div className="w-5 h-5 bg-faintPink rounded-full -ml-2 -mb-2 border-2 border-pink-400"></div>
           </div>

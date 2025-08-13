@@ -1,10 +1,11 @@
 /* @import 'leaflet/dist/leaflet.css'; */
 
-@import 'tailwindcss';
+@import url("https://fonts.googleapis.com/css2?family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap");
+@import "tailwindcss";
 
 @theme {
   --color-primary: #e91b41;
-  --color-faintPink: #FFF2F4;
+  --color-faintPink: #fff2f4;
   --color-softPink: #fde8ec;
   --color-lightLavender: #f5ebf9;
   --color-white: #ffffff;
@@ -54,6 +55,7 @@
   --color-black: #191a1b;
   --color-pureBlack: #0d0d0e;
   --color-solidBlack: #000000;
+  --color-textBlack: #231F20;
   --color-success-light: #d1f7d5;
   /* Light green */
   --color-success-dark: #28a745;
@@ -78,7 +80,17 @@
 }
 
 body {
-  font-family: 'Red Hat Display', sans-serif;
+  font-family: "Red Hat Text", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-weight: normal;
+}
+
+.red-hat-display {
+  font-family: "Red Hat Text", sans-serif;
+  /* font-optical-sizing: auto;
+  font-style: normal;
+  font-weight: normal; */
 }
 
 /* Custom Scrollbar Styling */
@@ -105,15 +117,17 @@ body {
   scrollbar-width: none; /* Firefox */
 }
 @font-face {
-  font-family: 'RedHat';
-  src: url('./assets/fonts/RedHatDisplay-VariableFont_wght.ttf') format('truetype');
+  font-family: "RedHat";
+  src: url("./assets/fonts/RedHatDisplay-VariableFont_wght.ttf")
+    format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'RedHatItalic';
-  src: url('./assets/fonts/RedHatDisplay-Italic-VariableFont_wght.ttf') format('truetype');
+  font-family: "RedHatItalic";
+  src: url("./assets/fonts/RedHatDisplay-Italic-VariableFont_wght.ttf")
+    format("truetype");
   font-weight: normal;
   font-style: normal;
 }
@@ -139,11 +153,11 @@ body {
 
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
   select,
-  input[type='text'],
-  input[type='email'],
-  input[type='number'],
-  input[type='tel'],
-  input[type='password'],
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="password"],
   textarea {
     font-size: 16px !important;
   }

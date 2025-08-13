@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { User, Ticket, Settings, LogOut, X } from "lucide-react";
-import ProfileComponent from "./Profile_page_component";
-import TicketManagement from "./Ticket";
-import Profile_Settings from "./Settings";
+import ProfileComponent from "../Profile/Profile_page_component";
+import TicketManagement from "../Profile/Ticket";
+import Profile_Settings from "../Profile/Settings";
 
 
 
@@ -11,7 +11,7 @@ interface sideItemsType {
   icon: React.ElementType;
   label: "My Profile" | "My Tickets" | "Settings" | "Log Out";
 }
-const Profile_layout = () => {
+const Profile_layout: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeButton, setActiveButton] = useState<
@@ -74,9 +74,8 @@ const Profile_layout = () => {
   };
 
   const sidebarVariants = {
-    hidden: { x: -280, opacity: 0 },
+    hidden: {  opacity: 0 },
     visible: {
-      x: 0,
       opacity: 1,
       transition: { duration: 0.4, ease: "easeOut" as const },
     },
@@ -87,8 +86,8 @@ const Profile_layout = () => {
       variants={sidebarVariants}
       initial="hidden"
       animate="visible"
-      className={`bg-pink-50 h-screen w-72 flex flex-col md:m-[2rem] 
-        rounded-lg ${className}`}
+      className={`bg-[#FFF2F4] h-screen w-72 flex flex-col md:m-[2rem] 
+        rounded-[12px] ${className}`}
     >
       <nav className="flex-1 pt-8 px-4">
         {sidebarItems.map((item) => {
@@ -97,10 +96,11 @@ const Profile_layout = () => {
             <motion.button
               key={item.label}
               variants={itemVariants}
-              className={`w-full flex items-center gap-3 px-4 py-4 mb-2 rounded-lg text-left transition-all duration-200 hover:bg-white hover:shadow-sm ${
+              className={`w-full flex items-center gap-3 px-4 py-4 mb-2 rounded-lg 
+                text-left transition-all duration-200 hover:scale-[1.5rem] hover:shadow-sm ${
                 item.label === activeButton
-                  ? "bg-red-500 text-white shadow-md"
-                  : "text-gray-700 hover:text-gray-900"
+                  ? "bg-red-500 text-white "
+                  : "bg-white text-gray-700 hover:text-gray-900"
               }`}
               onClick={() => {
                 setActiveButton(item.label);

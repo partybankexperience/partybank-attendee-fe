@@ -44,6 +44,10 @@ function App() {
           </PrivateRoute>
         } 
       />
+      {/* <Route
+        path="/event-details/"
+        element={<EventDetails />} 
+      /> */}
       <Route
         path="/event-details/:slug"
         element={<EventDetails />} 

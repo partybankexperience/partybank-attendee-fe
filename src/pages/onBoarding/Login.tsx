@@ -28,7 +28,7 @@ const { setUser } = useAuthStore();
     if (state === "notAuthenticated" && message) {
       errorAlert("Error", decodeURIComponent(message));
       const timer = setTimeout(() => {
-        navigate("/login", { replace: true, state: null });
+        navigate("/checkout", { replace: true, state: null });
       }, 2000); // Give time for user to read the notification
       return () => clearTimeout(timer); // Cleanup the timer on component unmount
     }
@@ -58,7 +58,7 @@ const { setUser } = useAuthStore();
         Storage.removeItem("redirect");
         navigate(redirect);
         return;
-      }else navigate('/');
+      }else navigate('/checkout');
     } catch (error) {
       console.log(error);
       setisLoading(false);

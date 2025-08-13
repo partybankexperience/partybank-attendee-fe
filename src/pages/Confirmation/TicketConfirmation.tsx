@@ -61,16 +61,20 @@ const Confirmation = () => {
           >
             {/* Success Header */}
             <motion.div
-              className="bg-green-50/80 px-6 py-8 lg:px-8 lg:py-12 text-center  rounded-md
+              className="bg-white px-6 py-8 lg:px-8 lg:py-12 text-center  rounded-md
              bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border
-              border-gray-100"
+              border-gray-100 relative"
               variants={staggerContainer}
               initial="initial"
               animate="animate"
             >
+              <div
+                className=" w-full h-[35%] md:h-1/2 bg-gradient-to-b from-[#00C452]/50  to-[#00C452]/2
+              absolute top-0 left-0 rounded-md blur-3xl backdrop-blur-sm "
+              ></div>
               <motion.div
                 className="inline-flex items-center justify-center
-                rounded-full mb-6"
+                rounded-full mb-6 relative"
                 variants={scaleIn}
               >
                 <div>
@@ -79,19 +83,25 @@ const Confirmation = () => {
               </motion.div>
 
               <motion.h1
-                className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3"
+                className="text-2xl lg:text-3xl font-semibold text-textBlack mb-3"
                 variants={fadeInUp}
               >
                 Your tickets has been confirmed.
               </motion.h1>
 
-              <motion.p className="text-gray-600 text-lg" variants={fadeInUp}>
+              <motion.p
+                className="text-[#A9ABAE] font-medium text-lg"
+                variants={fadeInUp}
+              >
                 Tickets confirmed and sent to your email.
               </motion.p>
             </motion.div>
 
+            {/* horizontal rule */}
+            <hr className=" mx-5 bg-[#EDECEC] border border-[#EDECEC]" />
+
             {/* Ticket Details */}
-            <div className="p-6 lg:p-8">
+            <div className="p-6 lg:p-8 bg-white">
               <div className="lg:flex lg:gap-8 lg:items-start">
                 {/* Left Side - Event Details */}
                 <motion.div
@@ -104,34 +114,41 @@ const Confirmation = () => {
                   <div className="flex items-start gap-4 mb-6">
                     <div className="  rounded-xl overflow-hidden flex-shrink-0">
                       <div>
-                        <img src={xtasyGroove} alt="" className="w-[5rem] md:w-[10rem] h-auto 
-                          max-h-[45rem] lg:w-[8rem] lg:h-[10rem]" />
+                        <img
+                          src={xtasyGroove}
+                          alt=""
+                          className="w-[5rem] md:w-[10rem] h-auto 
+                          max-h-[45rem] lg:w-[8rem] lg:h-[10rem]"
+                        />
                       </div>
                     </div>
 
                     <div className="flex-1">
-                      <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4">
+                      <h2 className="text-xl lg:text-2xl font-bold text-textBlack mb-4">
                         {ticketData.eventName}
                       </h2>
 
                       {/* Event Info */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3 text-gray-700">
-                          <Calendar className="w-4 h-4 text-red-500" />
-                          <span className="text-sm lg:text-base">
-                            {ticketData.date}
-                          </span>
+                      <div className="space-y-3 text-textBlack font-semibold">
+
+                        <div className="lg:flex lg:gap-5">
+                          <div className="flex items-center gap-3 ">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            <span className="text-sm lg:text-base">
+                              {ticketData.date}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-3 ">
+                            <Clock className="w-4 h-4 text-primary" />
+                            <span className="text-sm lg:text-base">
+                              {ticketData.time}
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-3 text-gray-700">
-                          <Clock className="w-4 h-4 text-red-500" />
-                          <span className="text-sm lg:text-base">
-                            {ticketData.time}
-                          </span>
-                        </div>
-
-                        <div className="flex items-start gap-3 text-gray-700">
-                          <MapPin className="w-4 h-4 text-red-500 mt-0.5" />
+                        <div className="flex items-start gap-3 ">
+                          <MapPin className="w-4 h-4 text-primary mt-0.5" />
                           <span className="text-sm lg:text-base">
                             {ticketData.location}
                           </span>
@@ -151,8 +168,8 @@ const Confirmation = () => {
                   >
                     <div className="w-full">
                       <div className="flex items-center gap-3 mb-4">
-                        <Ticket className="w-5 h-5 text-red-500" />
-                        <span className="font-semibold text-gray-900">
+                        <Ticket className="w-5 h-5 text-primary" />
+                        <span className="font-semibold text-textBlack">
                           x {ticketData.quantity} - {ticketData.ticketType}
                         </span>
                         <span className="ml-auto font-bold text-lg">
@@ -160,17 +177,17 @@ const Confirmation = () => {
                         </span>
                       </div>
 
-                      <div className="text-sm text-gray-600 mb-4">
+                      <div className="text-sm text-[#918F90] mb-4 font-medium">
                         • Booking fee per ticket:{" "}
                         {formatPrice(ticketData.pricePerTicket)}
                       </div>
 
                       <div className="border-t pt-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-gray-900">
+                          <span className="text-lg font-bold text-textBlack">
                             Total :
                           </span>
-                          <span className="text-xl font-bold text-red-600">
+                          <span className="text-xl font-bold text-primary">
                             {formatPrice(ticketData.total)}
                           </span>
                         </div>
