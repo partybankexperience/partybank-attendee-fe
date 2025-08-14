@@ -9,5 +9,14 @@ const getEvents=async ({q}:any,{state}:any,{page}:any,{per_page}:any,{fromDate}:
     return response;
   }
   
+const getEventBySlug=async (slug:string): Promise<any> => {
+    const response = await apiCall({
+      name: 'getEventBySlug',
+      urlExtra: `/${slug}`,
+      alert: false,
+      // params: { slug },
+    });
+    return response;
+  };
 
-export {getEvents}
+export {getEvents,getEventBySlug}

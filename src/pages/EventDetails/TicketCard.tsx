@@ -1,27 +1,28 @@
 import { motion } from "framer-motion";
 
-type TicketType = "xtasyPass" | "godMode" | "xtasy";
-type Tickets = Record<TicketType, number>;
-interface TicketCardType {
-  ticketName: string;
+interface TicketCardProps {
+  ticketId: string;
+  name: string;
   price: number;
-  currency: "₦";
-  updateTicketQuantity: (tickets: TicketType, change: number) => void;
-  tickets: Tickets;
-  ticketTitle: TicketType;
-  // setTickets: React.Dispatch<React.SetStateAction<Tickets>>;
+  soldOut?: boolean;
+  isSelected: boolean;
+  quantity: number;
+  selectTicket: () => void;
+  increaseQuantity: () => void;
+  decreaseQuantity: () => void;
 }
 
-// TicketCard component to display a single ticket with quantity controls
-const TicketCard = ({
-  ticketName,
+const TicketCard: React.FC<TicketCardProps> = ({
+  ticketId,
+  name,
   price,
-  currency,
-  updateTicketQuantity,
-  tickets,
-  ticketTitle,
-}: TicketCardType) => {
-  // I am  truncating words and adding ellipsis
+  soldOut,
+  isSelected,
+  quantity,
+  selectTicket,
+  increaseQuantity,
+  decreaseQuantity,
+}) => {
   const truncateWords = (text: string, wordLimit: number) => {
     const words = text.split(" ");
     if (words.length <= wordLimit) return text;
@@ -30,68 +31,73 @@ const TicketCard = ({
 
   return (
     <div
-      className="relative w-full bg-white rounded-xl overflow-hidden 
-          md:h-[5rem] flex items-center"
+      className={`relative w-full bg-white rounded-xl overflow-hidden md:h-[5rem] flex items-center ${isSelected ? "border-1 border-primary" : "border-gray-200"} 
+         ${
+        soldOut ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+      }`}
+      onClick={() => !soldOut && selectTicket()}
     >
-      <div className=" w-full h-full flex">
-        {/* Ticket border with rounded corners and pink outline */}
-        <div className="absolute inset-0 border-2 border-primary rounded-xl poin ter-events-none"></div>
+      <div className="w-full h-full flex relative">
+        {/* Pink border overlay */}
+        <div className={`"absolute inset-0  border-primary pointer-events-none rounded-xl" `}></div>
 
-        {/* Content wrapper with padding */}
+        {/* Content */}
         <motion.div
-          className="p-4 flex items-center justify-between w-full h-full "
-          // whileHover={{ scale: 1.02 }}
-          // transition={{ type: "spring", stiffness: 300 }}
+          className="p-4 flex items-center justify-between w-full h-full"
         >
-          {/* Ticket details: name and price */}
-          <div className="flex flex-col  h-full">
-            <span className="text-[.9rem] font-semibold text-[#231F20] uppercase cursor-pointer red-hat-display"
-             title={ticketName}
+          {/* Ticket name & price */}
+          <div className="flex flex-col h-full">
+            <span
+              className="text-[.9rem] font-semibold text-[#231F20] uppercase cursor-pointer red-hat-display"
+              title={name}
             >
-              {/* {ticketName} */}
-              {truncateWords(ticketName, 2)}
+              {truncateWords(name, 2)}
             </span>
             <span className="text-[.8rem] font-semibold text-primary mt-1 red-hat-display">
-              {currency}
-              {price.toLocaleString()}
+              ₦{price.toLocaleString()}
             </span>
           </div>
 
-          {/* Vertical dashed line separator */}
-          <div className="absolute right-[48%] md:right-[46.5%] lg:right-[10rem] top-0 bottom-0 flex items-center justify-center ">
+          {/* Vertical dashed line */}
+          <div className="absolute right-[48%] md:right-[15rem] lg:left-[11.15rem] top-0 bottom-0 flex items-center justify-center">
             <div className="border-l-2 border-dashed border-pink-300 h-full my-2"></div>
           </div>
 
-          {/* Ticket tear-off perforations */}
-          <div className="absolute right-[45%] lg:left-[16.8rem] lg:w-[60%] top-0 bottom-0 flex flex-col justify-between h-full">
-            <div className="w-5 h-5 bg-faintPink rounded-full -ml-2 -mt-2 border-2 border-pink-400"></div>
-            <div className="w-5 h-5 bg-faintPink rounded-full -ml-2 -mb-2 border-2 border-pink-400"></div>
+          {/* Perforation circles */}
+          <div className="absolute right-[45%] lg:left-[11rem] lg:w-[60%] top-0 bottom-0 flex flex-col justify-between h-full">
+            <div className="w-5 h-5 bg-faintPink rounded-full -ml-2 -mt-2 border-1 border-primary"></div>
+            <div className="w-5 h-5 bg-faintPink rounded-full -ml-2 -mb-2 border-1 border-primary"></div>
           </div>
 
-          {/* Quantity control */}
-          <div className="flex items-center space-x-2 ml-auto relative">
-            {/* Decrease button */}
-            <button
-              onClick={() => updateTicketQuantity(ticketTitle, -1)}
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 text-pink-600 text-xl font-bold transition-colors duration-200 hover:bg-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
-              aria-label="Decrease quantity"
-              disabled={tickets[ticketTitle] === 0}
-            >
-              −
-            </button>
-            {/* Quantity display */}
-            <span className="text-lg font-semibold text-gray-800 w-6 text-center">
-              {tickets[ticketTitle]}
-            </span>
-            {/* Increase button */}
-            <button
-              onClick={() => updateTicketQuantity(ticketTitle, 1)}
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 text-pink-600 text-xl font-bold transition-colors duration-200 hover:bg-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
-              aria-label="Increase quantity"
-            >
-              +
-            </button>
-          </div>
+          {/* Quantity controls */}
+          {isSelected && !soldOut && (
+            <div className="flex items-center space-x-2 ml-auto relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  decreaseQuantity();
+                }}
+                disabled={quantity <= 1}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 text-pink-600 text-xl font-bold transition-colors duration-200 hover:bg-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              >
+                −
+              </button>
+              <span className="text-lg font-semibold text-gray-800 w-6 text-center">
+                {quantity}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  increaseQuantity();
+                }}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 text-pink-600 text-xl font-bold transition-colors duration-200 hover:bg-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              >
+                +
+              </button>
+            </div>
+          )}
+
+          {soldOut && <span className="text-red-500 font-bold text-[.9rem]">Sold Out</span>}
         </motion.div>
       </div>
     </div>

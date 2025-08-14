@@ -7,6 +7,7 @@ import { emailExists, LoginUser } from "../../containers/onBoardingApi";
 import { Storage } from "../../stores/InAppStorage";
 import { errorAlert } from "../../components/alerts/ToastService";
 import { useAuthStore } from "../../stores/useAuthStore";
+import { useTicketStore } from "../../stores/cartStore";
 
 const Login = () => {
   const [email, setemail] = useState("");
@@ -27,7 +28,7 @@ const Login = () => {
   const message = queryParams.get("message");
   const state = queryParams.get("state");
   const { setUser } = useAuthStore();
-
+  const { selectedTicketId, quantity,selectedTicketName,price } = useTicketStore();
   useEffect(() => {
     if (!emailExist && buttonClicked) {
       const timer = setInterval(() => {
@@ -51,6 +52,7 @@ const Login = () => {
       return () => clearTimeout(timer); // Cleanup the timer on component unmount
     }
   }, [state, message]);
+  const redirect = Storage?.getItem("redirectPath") || null;
 
   const checkIfEmailExists = async (e: React.FormEvent) => {
     // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -94,17 +96,16 @@ const Login = () => {
       }
       return;
     }
-    const redirect = Storage?.getItem("redirect") || null;
     try {
       setisLoading(true);
       const res = await LoginUser(email, password);
       setUser(res);
       console.log(res, "Login Response");
       if (redirect) {
-        Storage.removeItem("redirect");
+        Storage.removeItem("redirectPath");
         navigate(redirect);
         return;
-      } else navigate("/");
+      } else navigate(-1);
     } catch (error) {
       console.log(error);
       setisLoading(false);
@@ -113,11 +114,7 @@ const Login = () => {
     }
   };
   // Dummy ticket data (replace with real cart data later)
-  const ticket = {
-    title: "Party Night Ticket",
-    price: "$20",
-    qty: 1,
-  };
+ 
   const handleLogin = (e: any) => {
     if (emailExist && buttonClicked) {
       handleSignIn(e);
@@ -137,11 +134,12 @@ const Login = () => {
             Let’s sign in quickly to continue to your account.
           </p> */}
           {/* Ticket Summary */}
+          {selectedTicketId && redirect && (
           <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
             <div className="flex justify-between items-center">
-              <p className="font-semibold">{ticket.title}</p>
+              <p className="font-semibold">{selectedTicketName}</p>
               <p className="text-sm text-darkGrey">
-                {ticket.qty} × {ticket.price}
+                {quantity} × {price?.toLocaleString()}
               </p>
             </div>
             {/* <span className="font-bold text-red">{ticket.price}</span> */}
@@ -149,6 +147,7 @@ const Login = () => {
               You're almost done, just log in to complete your purchase.
             </p>
           </div>
+          )}
         </div>
 
         <div className="grid w-full gap-[12px] mt-4">

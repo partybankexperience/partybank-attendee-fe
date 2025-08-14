@@ -14,7 +14,7 @@ const EmailVerification = () => {
   const [timer, setTimer] = useState(600);
   const [isResendOTPLoading, setisResendOTPLoading] = useState(false);
   const { setUser } = useAuthStore();
-  const redirect=Storage?.getItem("redirect")|| null;
+  const redirect=Storage?.getItem("redirectPath")|| null;
   const navigate=useNavigate()
   const location=useLocation()
   const email = location?.state?.email || "";
@@ -44,7 +44,7 @@ const EmailVerification = () => {
         const res=await verifyOtp(otp,email)
         setUser(res);
         if (redirect) {
-                Storage.removeItem("redirect");
+                Storage.removeItem("redirectPath");
                 navigate(redirect);
                 return;
               }else navigate('/');

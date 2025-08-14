@@ -50,4 +50,10 @@ export const endPoints: endPointlistTypes = {
     headers,
     // auth: true,
   },
+  getEventBySlug: {
+    url: '/events/slug',
+    method: 'GET',
+    headers,
+    // auth: true,
+  },
 };

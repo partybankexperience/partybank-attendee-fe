@@ -7,6 +7,8 @@ import RadioButton from "../../components/inputs/RadioButton";
 import { SignUpUser } from "../../containers/onBoardingApi";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { successAlert } from "../../components/alerts/ToastService";
+import { useTicketStore } from "../../stores/cartStore";
+import { Storage } from "../../stores/InAppStorage";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -29,6 +31,8 @@ const SignUp = () => {
   const { setUser } = useAuthStore();
   const location = useLocation();
   const emailFromLocation = location?.state?.email || "";
+  const { selectedTicketId, quantity, ticketPrices,selectedTicketName,price } = useTicketStore();
+  const redirect = Storage?.getItem("redirectPath") || null;
   async function handleRegisterUser(e: React.FormEvent) {
     e.preventDefault();
    
@@ -88,31 +92,26 @@ const SignUp = () => {
         setemail(emailFromLocation);
       }
     }, [])
-    // Dummy ticket data (replace with real cart data later)
-  const ticket = {
-    title: "Party Night Ticket",
-    price: "$20",
-    qty: 1,
-  };
-
+console.log(selectedTicketId && redirect, redirect,selectedTicketId)
   return (
     <LoginLayout><form className="grid mt-[2vh] md:mt-[0vh] gap-[2vh] h-fit " onSubmit={handleRegisterUser}>
     <div className="grid gap-[10px] text-center md:text-left">
       <h1 className="text-black text-3xl font-semibold">Create an Account</h1>
       {/* <p className="text-lightGrey font-normal text-sm">Let’s sign up quickly to get stated.</p> */}
       {/* Ticket Summary */}
+      {selectedTicketId && redirect && (
       <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
-            <div className="flex justify-between items-center">
-              <p className="font-semibold">{ticket.title}</p>
+      <div className="flex justify-between items-center">
+              <p className="font-semibold">{selectedTicketName}</p>
               <p className="text-sm text-darkGrey">
-                {ticket.qty} × {ticket.price}
+                {quantity} × {price?.toLocaleString()}
               </p>
             </div>
             {/* <span className="font-bold text-red">{ticket.price}</span> */}
             <p className="text-softRed text-[14px] text-left">
             You were checking out
             </p>
-          </div>
+          </div>)}
     </div>
     <div className="grid md:grid-cols-2 gap-[18px]">
       <DefaultInput

@@ -88,3 +88,56 @@ export const CardGridSkeleton = ({
     </div>
   );
 };
+export const EventDetailsSkeleton = () => (
+  <div className="min-h-[80vh] mx-auto md:px-[2rem] md:py-8 lg:py-[2rem] bg-white w-[90vw] rounded-xl relative top-[-5rem] z-20 md:shadow-md grid lg:grid-cols-[1fr_2fr_1.5fr] gap-8 items-start justify-between animate-pulse">
+    {/* Image Placeholder */}
+    <div className="relative rounded-xl overflow-hidden shadow-2xl">
+      <div className="w-full h-[30rem] bg-gray-200 rounded-xl"></div>
+    </div>
+
+    {/* Event Info Placeholder */}
+    <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-black">
+      <div className="h-10 bg-gray-200 rounded-lg w-3/4 mb-4"></div>
+      <div className="space-y-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 bg-gray-300 rounded-full"></div>
+          <div className="h-6 bg-gray-200 rounded-lg w-1/3"></div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 bg-gray-300 rounded-full"></div>
+          <div className="h-6 bg-gray-200 rounded-lg w-1/3"></div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 bg-gray-300 rounded-full"></div>
+          <div className="h-6 bg-gray-200 rounded-lg w-1/2"></div>
+        </div>
+      </div>
+      <div>
+        <div className="h-6 bg-gray-200 rounded-lg w-1/4 mb-3"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded-lg w-full"></div>
+          <div className="h-4 bg-gray-200 rounded-lg w-full"></div>
+          <div className="h-4 bg-gray-200 rounded-lg w-5/6"></div>
+        </div>
+      </div>
+    </div>
+
+    {/* Ticket Purchase Placeholder */}
+    <div className="w-full ml-auto bg-gradient-to-b from-[#FFF2F4] from-0% via-[#FFF2F4] via-70% to-[#ffffff]/50 to-90% rounded-xl shadow-2xl p-6 top-8">
+      <div className="h-8 bg-gray-200 rounded-lg w-2/3 mb-2"></div>
+      <div className="h-6 bg-gray-200 rounded-lg w-1/2 mb-6"></div>
+      <div className="space-y-4 mb-8">
+        <div className="h-20 bg-gray-200 rounded-xl"></div>
+        <div className="h-20 bg-gray-200 rounded-xl"></div>
+        <div className="h-20 bg-gray-200 rounded-xl"></div>
+      </div>
+      <div className="border-t pt-6">
+        <div className="flex justify-between items-center mb-6">
+          <div className="h-6 bg-gray-200 rounded-lg w-1/4"></div>
+          <div className="h-6 bg-gray-200 rounded-lg w-1/4"></div>
+        </div>
+        <div className="w-full h-12 bg-gray-200 rounded-lg"></div>
+      </div>
+    </div>
+  </div>
+);

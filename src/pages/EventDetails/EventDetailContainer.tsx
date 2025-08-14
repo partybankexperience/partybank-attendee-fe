@@ -1,49 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-// import { MapPin, Calendar, Clock, Plus, Minus } from "lucide-react";
 import { MapPin, Calendar, Clock } from "lucide-react";
 import xtasyGroove from "../../assets/images/XtasyGroove.png";
-// import { Modal } from '../../components/modal/Modal';
-// import CheckoutComponent from '../checkout/CheckoutComponent';
 import TicketCard from "./TicketCard";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Storage } from "../../stores/InAppStorage";
 import HomeLayout from "../../components/layouts/HomeLayout";
 import DefaultButton from "../../components/buttons/DefaultButton";
-
-type TicketType = "xtasyPass" | "godMode" | "xtasy";
-type Tickets = Record<TicketType, number>;
+import { useTicketStore } from "../../stores/cartStore";
+import { errorAlert } from "../../components/alerts/ToastService";
+import { getEventBySlug } from "../../containers/eventsApi";
+import { EventDetailsSkeleton } from "../../components/common/LoadingSkeleton";
 
 const EventDetails: React.FC = () => {
-  const [tickets, setTickets] = useState<Tickets>({
-    xtasyPass: 1,
-    godMode: 1,
-    xtasy: 0,
-  });
+  const [loading, setLoading] = useState(true);
+  const {slug}=useParams()
+  const { selectedTicketId, quantity, selectTicket, increaseQuantity, decreaseQuantity,getTotal } = useTicketStore();
+  const [eventDetail, seteventDetail] = useState<any>('')
 
   // const [isOpen, setIsOpen] = useState<boolean>(false)
 
   const navigate = useNavigate();
-  const ticketPrices: Tickets = {
-    xtasyPass: 5000,
-    godMode: 10000,
-    xtasy: 15000,
-  };
-
-  // const updateTicketQuantity = (type: TicketType, change: number) => {
-  const updateTicketQuantity = (type: TicketType, change: number) => {
-    setTickets((prev) => ({
-      ...prev,
-      [type]: Math.max(0, prev[type] + change),
-    }));
-  };
-
-  const calculateTotal = (tickets: Tickets, ticketPrices: Tickets): number => {
-    return Object.entries(tickets).reduce((total, [type, quantity]) => {
-      return total + ticketPrices[type as TicketType] * quantity;
-    }, 0);
-  };
-
+  
   const formatPrice = (price: number): string => {
     return `₦${price.toLocaleString()}`;
   };
@@ -62,20 +40,54 @@ const EventDetails: React.FC = () => {
       },
     },
   };
-
-  // const onClose = ()=>{
-  //   setIsOpen(false)
-  // }
+  
+  
   function handleNext() {
+    if (!selectedTicketId) return errorAlert('Error','Please select a ticket first!');
     const user = Storage.getItem("user");
     if (!user) {
       navigate("/login");
       Storage.setItem("redirectPath", "/checkout");
     } else navigate("/checkout");
   }
+
+  async function getEventDetail() {
+    setLoading(true);
+    try {
+      const res= await getEventBySlug(slug as string)
+      console.log(res)
+      seteventDetail(res)
+    } catch (error) {
+      
+    }finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getEventDetail()
+  }, [])
+  if (loading) {
+    return (
+      <HomeLayout>
+        <EventDetailsSkeleton />
+      </HomeLayout>
+    );
+  }
+
+  // Handle the case where the event is not found
+  if (!eventDetail) {
+    return (
+      <HomeLayout>
+        <div className="flex items-center justify-center min-h-[80vh] text-center">
+          <p className="text-xl font-bold text-red-500">Event not found.</p>
+        </div>
+      </HomeLayout>
+    );
+  }
   return (
     <HomeLayout>
-      <div className="min-h-screen  mx-auto md:px-[2rem] md:py-8 lg:py-[2rem] bg-white w-[90vw] rounded-xl
+      <div className="min-h-[80vh]  mx-auto md:px-[2rem] md:py-8 lg:py-[2rem] bg-white w-[90vw] rounded-xl
               relative top-[-5rem] z-20 md:shadow-md grid lg:grid-cols-[1fr_2fr_1.5fr] gap-8 items-start justify-between ">
         
         <motion.div
@@ -93,7 +105,7 @@ const EventDetails: React.FC = () => {
               >
                 <div>
                   <img
-                    src={xtasyGroove}
+                    src={eventDetail?.bannerImage || xtasyGroove}
                     alt="Xtasy Groove Event"
                     className="w-full h-auto max-h-[30rem] object-cover rounded-xl"
                   />
@@ -111,7 +123,7 @@ const EventDetails: React.FC = () => {
                   className="text-[2.5rem]  font-bold mb-4 "
                   variants={fadeInUp}
                 >
-                  Xtasy Groove
+                  {eventDetail.name }
                 </motion.h2>
 
                 <div className="space-y-3 mb-6 text-[#231F20] font-semibold red-hat-display">
@@ -143,15 +155,7 @@ const EventDetails: React.FC = () => {
                     About Event
                   </h3>
                   <p className="text-[#918F90] leading-relaxed font-medium red-hat-display">
-                    Dive into the seductive heartbeat of the night – a world
-                    where basslines flirt with your soul and every pulse of
-                    light teases your wild side. Xtasy Groove isn't just a
-                    party. It's a movement. A euphoric escape into music,
-                    mystery, and magnetic energy. Step through the doors and
-                    leave reality behind. Here, the rules don't exist – only the
-                    rhythm does. From hypnotic amapiano drops to fiery afrobeat
-                    bangers, this is the playground of the bold, the sexy, and
-                    the free 🔥
+                    {eventDetail.description || "Join us for an unforgettable night of music, dance, and celebration at Xtasy Groove! Experience the best DJs, live performances, and a vibrant atmosphere that will keep you dancing all night long. Don't miss out on the ultimate party of the year!"}
                   </p>
                 </motion.div>
               </motion.div>
@@ -171,8 +175,8 @@ const EventDetails: React.FC = () => {
                 Which ticket type are you going for?
               </p>
 
-              <div className="space-y-4 mb-8">
-                <TicketCard
+              <div className="space-y-4 mb-8 max-h-[50vh] overflow-auto">
+                {/* <TicketCard
                   ticketName="XTASY PASS"
                   price={5000}
                   currency="₦"
@@ -189,23 +193,22 @@ const EventDetails: React.FC = () => {
                   tickets={tickets}
                   ticketTitle="godMode"
                   // setTickets={setTickets}
-                />
-
-                {/* XTASY - Sold Out */}
-                <motion.div
-                  className="border-2 border-gray-200 rounded-xl p-4 bg-gray-100 opacity-60"
-                  whileHover={{ scale: 1.01 }}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="font-bold text-gray-600 text-[.9rem]">XTASY</h4>
-                      <p className="text-gray-500 font-bold text-lg text-[.8rem]">
-                        {formatPrice(ticketPrices.xtasy)}
-                      </p>
-                    </div>
-                    <div className="text-primary font-semibold text-[.9rem]">Sold out</div>
-                  </div>
-                </motion.div>
+                /> */}
+{eventDetail.tickets.map((ticket:any) => (
+              <TicketCard
+                key={ticket.id}
+                ticketId={ticket.id}
+                name={ticket.name}
+                price={ticket.price}
+                soldOut={ticket.isSoldOut}
+                isSelected={selectedTicketId === ticket.id}
+                quantity={selectedTicketId === ticket.id ? quantity : 0}
+                selectTicket={() => selectTicket(ticket)}
+                increaseQuantity={increaseQuantity}
+                decreaseQuantity={decreaseQuantity}
+              />
+            ))}
+               
               </div>
 
               {/* Total and Purchase Button */}
@@ -215,7 +218,7 @@ const EventDetails: React.FC = () => {
                     Total:
                   </span>
                   <span className="text-[1.1rem] font-bold text-primary">
-                    {formatPrice(calculateTotal(tickets, ticketPrices))}
+                    {formatPrice(getTotal())}
                   </span>
                 </div>
                 <DefaultButton className="!w-full" onClick={() => handleNext()}>
