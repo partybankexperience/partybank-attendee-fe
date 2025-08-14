@@ -11,6 +11,7 @@ import { useTicketStore } from "../../stores/cartStore";
 import { errorAlert } from "../../components/alerts/ToastService";
 import { getEventBySlug } from "../../containers/eventsApi";
 import { EventDetailsSkeleton } from "../../components/common/LoadingSkeleton";
+import { convertISOToDateInput, formatDate, formatDateTime, formatTimeRange } from "../../components/helpers/dateTimeHelpers";
 
 const EventDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -132,21 +133,22 @@ const EventDetails: React.FC = () => {
                     variants={fadeInUp}
                   >
                     <Calendar className="w-5 h-5 text-primary/80" />
-                    <span className="r">12 Apr 2025</span>
+                    <span className="r"> {formatDate(eventDetail?.startDate)} {eventDetail.endDate && `- ${formatDate(eventDetail.endDate)}`} </span>
                   </motion.div>
                   <motion.div
                     className="flex items-center gap-3"
                     variants={fadeInUp}
                   >
                     <Clock className="w-5 h-5 text-primary/80" />
-                    <span>4:00 PM - 2:00 AM</span>
+                    <span>{formatTimeRange(eventDetail.startTime, eventDetail.endTime)}</span>
                   </motion.div>
                   <motion.div
                     className="flex items-center gap-3"
                     variants={fadeInUp}
                   >
                     <MapPin className="w-5 h-5 text-primary/80" />
-                    <span>Port Harcourt, Nigeria EL-CIELO HOMES</span>
+                    <span> {eventDetail.venueName
+ || 'TBD'                    }</span>
                   </motion.div>
                 </div>
 
