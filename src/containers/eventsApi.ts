@@ -14,7 +14,7 @@ const getEventBySlug=async (slug:string): Promise<any> => {
       name: 'getEventBySlug',
       urlExtra: `/${slug}`,
       alert: false,
-      // params: { slug },
+      params: { viewer:'attendee' },
     });
     return response;
   };

@@ -30,7 +30,11 @@ function App() {
       />
       <Route
         path="/signup"
-        element={<SignUp />}
+        element={
+        <PrivateRoute>
+<SignUp />
+        </PrivateRoute>
+        }
       />
       <Route
         path="/email-verification"

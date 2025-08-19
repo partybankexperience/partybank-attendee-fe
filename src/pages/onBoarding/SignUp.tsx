@@ -9,6 +9,7 @@ import { useAuthStore } from "../../stores/useAuthStore";
 import { successAlert } from "../../components/alerts/ToastService";
 import { useTicketStore } from "../../stores/cartStore";
 import { Storage } from "../../stores/InAppStorage";
+import { StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -28,11 +29,22 @@ const SignUp = () => {
   const [genderError, setGenderError] = useState(false);
   const genderRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<any>(null);
-  const { setUser } = useAuthStore();
+  const { setUser,setCheckoutStage ,checkoutStage } = useAuthStore();
   const location = useLocation();
   const emailFromLocation = location?.state?.email || "";
-  const { selectedTicketId, quantity, ticketPrices,selectedTicketName,price } = useTicketStore();
+  const { selectedTicketId, quantity, selectedTicketName,price } = useTicketStore();
   const redirect = Storage?.getItem("redirectPath") || null;
+  const [endTime, setEndTime] = useState<Date | null>(null);
+
+  const timeLeft = usePaymentTimer(endTime, () => {
+    setEndTime(null);
+  });
+
+  const startTimer = (durationInMinutes: number) => {
+    // Calculate the end time based on the input duration
+    const targetTime = new Date(new Date().getTime() + durationInMinutes * 60 * 1000);
+    setEndTime(targetTime);
+  };
   async function handleRegisterUser(e: React.FormEvent) {
     e.preventDefault();
    
@@ -74,8 +86,18 @@ const SignUp = () => {
       setisLoading(true)
       const res=await SignUpUser(email,password,firstName,lastName,genderSelection)
       setUser(res)
+      if(checkoutStage==='emailVerification'){
+        // Storage.setItem("checkoutStage", "signUp");
+        setCheckoutStage('signUp')
+        if (redirect && checkoutStage==='emailVerification') {
+          Storage.removeItem("redirectPath");
+          navigate(redirect);
+        } 
+        }else navigate('/');
+      // Storage.setItem("checkoutStage", "signUp");
       successAlert("Success",res.message)
-      navigate('/email-verification',{state:{email}})
+      console.log(res, "Sign Up Response");
+      // navigate('/checkout',{state:{email}})
     } catch (error) {
       
     } finally {
@@ -92,15 +114,25 @@ const SignUp = () => {
         setemail(emailFromLocation);
       }
     }, [])
-console.log(selectedTicketId && redirect, redirect,selectedTicketId)
+    function handleChangeEmail() {
+      Storage.removeItem("email");
+      if (checkoutStage === "emailVerification") {
+        // Storage.setItem("checkoutStage", "eventDetails");
+        setCheckoutStage('eventDetails')
+
+      }
+      navigate("/login");
+    }
   return (
-    <LoginLayout><form className="grid mt-[2vh] md:mt-[0vh] gap-[2vh] h-fit " onSubmit={handleRegisterUser}>
+    <LoginLayout>
+      <form className="grid mt-[2vh] md:mt-[0vh] gap-[2vh] h-fit " onSubmit={handleRegisterUser}>
     <div className="grid gap-[10px] text-center md:text-left">
       <h1 className="text-black text-3xl font-semibold">Create an Account</h1>
       {/* <p className="text-lightGrey font-normal text-sm">Let’s sign up quickly to get stated.</p> */}
       {/* Ticket Summary */}
-      {selectedTicketId && redirect && (
+      {selectedTicketId && checkoutStage==='emailVerification' && (
       <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
+      <StyledTimerCard timeLeft={timeLeft} />
       <div className="flex justify-between items-center">
               <p className="font-semibold">{selectedTicketName}</p>
               <p className="text-sm text-darkGrey">
@@ -139,7 +171,7 @@ console.log(selectedTicketId && redirect, redirect,selectedTicketId)
       />
     </div>
     <div className="grid w-full gap-[18px]">
-
+      <div className="grid">
       <DefaultInput
         id="signupEmail"
         label="Email"
@@ -151,7 +183,20 @@ console.log(selectedTicketId && redirect, redirect,selectedTicketId)
         required
         ref={emailRef}
         setExternalError={setEmailError}
+        disabled={true} // Disable email input if it's coming from location state
       />
+        <p className="text-sm text-grey200">
+          <button
+            type="button"
+            className="cursor-pointer text-red underline hover:text-deepRed focus:outline-none focus:ring-2 focus:ring-red focus:ring-offset-2"
+            onClick={() => handleChangeEmail()}
+            aria-label="Change email"
+          >
+            Change email
+          </button>
+        </p>
+      </div>
+
       <div className="flex flex-col gap-4" ref={genderRef}>
       <span className="text-[1rem] font-semibold text-black">Gender</span>
 

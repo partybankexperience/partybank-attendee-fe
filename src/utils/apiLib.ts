@@ -23,6 +23,12 @@ export const endPoints: endPointlistTypes = {
     url: '/auth/attendee-signup',
     method: 'POST',
     headers,
+    auth: true,
+  },
+  sendOtp:{
+    url: '/auth/initiate',
+    method: 'POST',
+    headers,
     auth: false,
   },
   verifyOtp:{

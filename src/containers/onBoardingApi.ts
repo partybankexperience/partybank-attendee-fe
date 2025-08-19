@@ -8,10 +8,19 @@ const LoginUser = async (email: string, password: string): Promise<any> => {
     return response;
   };
 
+const initiateOtp = async (email: string): Promise<any> => {
+    const response = await apiCall({
+      name: 'sendOtp',
+      data: { email},
+    });
+    return response;
+  };
+
   const emailExists = async (email: string): Promise<any> => {
     const response = await apiCall({
       name: 'emailExists',
       data: { email },
+      alert:false
     });
     return response;
   };
@@ -37,4 +46,4 @@ const resendOTP=async(email:any,purpose:"signup"|"password"): Promise<any> => {
     });
     return response;
   };
-export { LoginUser, SignUpUser,verifyOtp,resendOTP,emailExists };
+export { LoginUser, SignUpUser,verifyOtp,resendOTP,emailExists,initiateOtp };
