@@ -123,6 +123,12 @@ const SignUp = () => {
       }
       navigate("/login");
     }
+    useEffect(() => {
+      if( checkoutStage === 'emailVerification' && selectedTicketId) {
+        startTimer(10); // Start the timer with 10 minutes
+      }
+    }, [checkoutStage])
+    
   return (
     <LoginLayout>
       <form className="grid mt-[2vh] md:mt-[0vh] gap-[2vh] h-fit " onSubmit={handleRegisterUser}>
