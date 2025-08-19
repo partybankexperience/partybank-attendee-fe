@@ -29,7 +29,7 @@ const SignUp = () => {
   const [genderError, setGenderError] = useState(false);
   const genderRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<any>(null);
-  const { setUser,setCheckoutStage ,checkoutStage } = useAuthStore();
+  const { setUser,setCheckoutStage ,checkoutStage,clearAuth } = useAuthStore();
   const location = useLocation();
   const emailFromLocation = location?.state?.email || "";
   const { selectedTicketId, quantity, selectedTicketName,price } = useTicketStore();
@@ -115,12 +115,12 @@ const SignUp = () => {
       }
     }, [])
     function handleChangeEmail() {
-      Storage.removeItem("email");
       if (checkoutStage === "emailVerification") {
         // Storage.setItem("checkoutStage", "eventDetails");
         setCheckoutStage('eventDetails')
 
       }
+      clearAuth()
       navigate("/login");
     }
     useEffect(() => {

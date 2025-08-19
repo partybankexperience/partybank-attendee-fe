@@ -13,7 +13,6 @@ import React from "react";
 import DefaultButton from "../buttons/DefaultButton";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { ToastContainer } from "react-toastify";
-import { Storage } from "../../stores/InAppStorage";
 
 const HomeLayout = ({ children }: React.PropsWithChildren) => {
   const navigate = useNavigate();

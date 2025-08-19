@@ -27,7 +27,7 @@ const Login = () => {
   const queryParams = new URLSearchParams(location.search);
   const message = queryParams.get("message");
   const state = queryParams.get("state");
-  const { setUser,checkoutStage,setCheckoutStage } = useAuthStore();
+  const { setUser,checkoutStage,setCheckoutStage,setEmail, markOtpSent } = useAuthStore();
   const { selectedTicketId, quantity,selectedTicketName,price } = useTicketStore();
 //   const checkoutStage = Storage.getItem("checkoutStage") || null;
     // Use a ref to store the interval ID
@@ -55,46 +55,54 @@ const Login = () => {
     const redirect = Storage?.getItem("redirectPath") || null;
   
     const checkIfEmailExists = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (emailError) {
-        if (emailRef.current) {
-          emailRef.current.focus();
+        e.preventDefault();
+        if (emailError) {
+          emailRef.current?.focus();
+          return;
         }
-        return;
-      }
-      setisLoading(true);
-      setbuttonClicked(true); // Set this here to show the countdown div immediately
-  
-      try {
-        const res = await emailExists(email);
-        setemailExist(res.exists);
-  
-        if (!res.exists) {
-          // Start the countdown when email doesn't exist
-         await initiateOtp(email)
-        //   console.log(otpSent, "OTP Sent Response");
-          setCountdown(10);
-        //   Storage.setItem("checkoutStage", "login");
-        if(checkoutStage==='eventDetails'){
-          setCheckoutStage('login');}
-          timerRef.current = setInterval(() => {
-            setCountdown((prev) => {
-              if (prev <= 1) {
-                clearInterval(timerRef.current);
-                navigate("/email-verification", { state: { email } });
-                return 0;
-              }
-              return prev - 1;
-            });
-          }, 1000); // 1-second interval
+      
+        setisLoading(true);
+        setbuttonClicked(true); // Show countdown div immediately
+      
+        try {
+          const res = await emailExists(email);
+          setemailExist(res.exists);
+      
+          if (!res.exists) {
+            // Send OTP
+            await initiateOtp(email);
+      
+            // Store email + stage
+            setEmail(email);
+            markOtpSent();
+            if (checkoutStage === "eventDetails") {
+              setCheckoutStage("login");
+            }
+      
+            // Prepare countdown value
+            setCountdown(10);
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setisLoading(false);
+      
+          // 🔑 Start countdown *only after loading ends and OTP was sent*
+          if (!emailExist) {
+            timerRef.current = setInterval(() => {
+              setCountdown((prev) => {
+                if (prev <= 1) {
+                  clearInterval(timerRef.current);
+                  navigate("/email-verification", { state: { email } });
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          }
         }
-      } catch (error) {
-        console.error(error);
-        setisLoading(false);
-      } finally {
-        setisLoading(false);
-      }
-    };
+      };
+      
   
     const handleSignIn = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -207,7 +215,7 @@ const Login = () => {
                   </a>
                 </div>
               </div>
-            ) : (
+            ) : !isLoading && (
               <div className="text-center text-red text-[14px] animate-fadeIn">
                 <p>We couldn’t find an account with that email.</p>
                 <p>

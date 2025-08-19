@@ -14,17 +14,17 @@ const EmailVerification = () => {
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(600);
   const [isResendOTPLoading, setisResendOTPLoading] = useState(false);
-  const { setUser } = useAuthStore();
+  const {email, otpSent  } = useAuthStore();
   const navigate=useNavigate()
-  const location=useLocation()
-  const email = location?.state?.email || "";
+  // const location=useLocation()
+  // const email = location?.state?.email || "";
   const { selectedTicketId, quantity, selectedTicketName,price ,reset} = useTicketStore();
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [otpEndTime, setOtpEndTime] = useState<Date | null>(null);
   const [timersInitialized, setTimersInitialized] = useState(false);
   const eventName=Storage.getItem('eventName')
   const checkoutStage = Storage.getItem("checkoutStage") || null;
-  const { setCheckoutStage } = useAuthStore();
+  const { setCheckoutStage,setVerificationToken } = useAuthStore();
   const timeLeft = usePaymentTimer(endTime, () => {
       setEndTime(null);
     });
@@ -69,7 +69,8 @@ const EmailVerification = () => {
     try {
         const res=await verifyOtp(otp,email)
         if(selectedTicketId && checkoutStage==='login') setCheckoutStage('emailVerification')
-        setUser(res);
+        // setUser(res);
+        setVerificationToken(res.accessToken);
         navigate('/signup', { state: { email } })
       console.log(res, "Login Response");
     } catch (error:any) {
@@ -94,7 +95,11 @@ const EmailVerification = () => {
 
     }
   }, [timeLeft, eventName,timersInitialized,endTime]);
-  
+  useEffect(() => {
+    if (!email && !otpSent) {
+      navigate("/login");
+    }
+  }, [email, otpSent, navigate]);
   return (
     <LoginLayout>
       <form
@@ -106,9 +111,11 @@ const EmailVerification = () => {
         <div className="grid gap-[10px] text-center md:text-left">
             <div className="text-center  md:text-left grid gap-[5px]">
           <h1 className=" text-3xl font-semibold">Email Verification</h1>
+          
           <p className=" text-lightGrey font-normal text-sm">
-            Verification code has been send via email to 
-            {maskEmail(email) }
+          {email
+    ? <>Verification code has been sent via email to {maskEmail(email)}</>
+    : "No email found. Please go back."}
           </p>
           {/* Ticket Summary */}
       {selectedTicketId && checkoutStage==='login' && (

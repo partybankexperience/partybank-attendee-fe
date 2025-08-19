@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import PrivateRoute from "./utils/privateRoute";
 import EventDetails from "./pages/EventDetails/EventDetailContainer";
 import Confirmation from "./pages/Confirmation/TicketConfirmation";
+import VerificationRoute from "./utils/verificationRoute";
 
 
 function App() {
@@ -31,9 +32,9 @@ function App() {
       <Route
         path="/signup"
         element={
-        <PrivateRoute>
+        <VerificationRoute>
 <SignUp />
-        </PrivateRoute>
+        </VerificationRoute>
         }
       />
       <Route
