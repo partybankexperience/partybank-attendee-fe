@@ -16,11 +16,13 @@ import {
   formatTimeRange,
 } from "../../components/helpers/dateTimeHelpers";
 import { useAuthStore } from "../../stores/useAuthStore";
+import { useCheckoutStore } from "../../stores/checkoutStore";
 
 const EventDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { setCheckoutStage } = useAuthStore();
   const { slug } = useParams();
+  const { startCheckout } = useCheckoutStore();
   const {
     selectedTicketId,
     quantity,
@@ -60,6 +62,7 @@ const EventDetails: React.FC = () => {
     return}
     const user = Storage.getItem("user");
     console.log(user, "user in event details");
+    startCheckout(selectedTicketId,quantity)
     if (!user) {
       Storage.setItem("redirectPath", "/checkout");
       setCheckoutStage("eventDetails");

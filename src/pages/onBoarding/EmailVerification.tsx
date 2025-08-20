@@ -5,9 +5,10 @@ import DefaultButton from "../../components/buttons/DefaultButton";
 import { resendOTP, verifyOtp } from "../../containers/onBoardingApi";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { Storage } from "../../stores/InAppStorage";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import maskEmail from "../../components/helpers/maskedEmail";
 import { useTicketStore } from "../../stores/cartStore";
+import { useCheckoutStore } from "../../stores/checkoutStore";
 import { formatTimer, StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
 
 const EmailVerification = () => {
@@ -25,6 +26,7 @@ const EmailVerification = () => {
   const eventName=Storage.getItem('eventName')
   const checkoutStage = Storage.getItem("checkoutStage") || null;
   const { setCheckoutStage,setVerificationToken } = useAuthStore();
+  const { cancelCheckout } = useCheckoutStore();
   const timeLeft = usePaymentTimer(endTime, () => {
       setEndTime(null);
     });
@@ -79,15 +81,19 @@ const EmailVerification = () => {
   }
 
   useEffect(() => {
-    startTimer(10); // Start the timer with 10 minutes
     otpStartTimer(5) // Start the OTP timer with 5 minutes
-    setTimersInitialized(true);
+    if (checkoutStage === 'login') {
+      startTimer(10); // Start the timer with 10 minutes
+      setTimersInitialized(true);
+    }
   }, [])
 
 
   useEffect(() => {
     if (!timersInitialized) return; // Prevent running before timers are set
     if (timeLeft === 0&& endTime === null) {
+      // Cancel the checkout process
+      cancelCheckout()
       // Remove the cart data from local storage
       reset()
       // Timer expired, redirect to the event details page

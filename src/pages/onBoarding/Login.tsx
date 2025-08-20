@@ -8,6 +8,8 @@ import { Storage } from "../../stores/InAppStorage";
 import { errorAlert } from "../../components/alerts/ToastService";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useTicketStore } from "../../stores/cartStore";
+import { useCheckoutStore } from "../../stores/checkoutStore";
+import { StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
 
 const Login = () => {
   const [email, setemail] = useState("");
@@ -28,8 +30,20 @@ const Login = () => {
   const message = queryParams.get("message");
   const state = queryParams.get("state");
   const { setUser,checkoutStage,setCheckoutStage,setEmail, markOtpSent } = useAuthStore();
-  const { selectedTicketId, quantity,selectedTicketName,price } = useTicketStore();
-//   const checkoutStage = Storage.getItem("checkoutStage") || null;
+  const { selectedTicketId, quantity,selectedTicketName,price,reset } = useTicketStore();
+   const [endTime, setEndTime] = useState<Date | null>(null);
+  const { cancelCheckout } = useCheckoutStore();
+  const [timersInitialized, setTimersInitialized] = useState(false);
+    const eventName=Storage.getItem('eventName')
+    const timeLeft = usePaymentTimer(endTime, () => {
+      setEndTime(null);
+    });
+  
+    const startTimer = (durationInMinutes: number) => {
+      // Calculate the end time based on the input duration
+      const targetTime = new Date(new Date().getTime() + durationInMinutes * 60 * 1000);
+      setEndTime(targetTime);
+    };
     // Use a ref to store the interval ID
     const timerRef = useRef<any>(null);
 
@@ -146,8 +160,26 @@ const Login = () => {
         checkIfEmailExists(e);
       }
     };
-    console.log(redirect, "Redirect Path");
-  return (
+    useEffect(() => {
+        if( checkoutStage === 'emailVerification' && selectedTicketId) {
+          startTimer(10); // Start the timer with 10 minutes
+          setTimersInitialized(true);
+        }
+      }, [checkoutStage])
+      useEffect(() => {
+        if (!timersInitialized) return; // Prevent running before timers are set
+        if (timeLeft === 0&& endTime === null) {
+          // Cancel the checkout process
+          cancelCheckout()
+          // Remove the cart data from local storage
+          reset()
+          // Timer expired, redirect to the event details page
+          navigate(`/event-details/${eventName}`);
+    
+        }
+      }, [timeLeft, eventName,timersInitialized,endTime]);
+
+      return (
     <LoginLayout>
       <form
         className="grid mt-[2vh] md:mt-[2vh] gap-[3vh] h-fit w-full "
@@ -161,6 +193,7 @@ const Login = () => {
           {/* Ticket Summary */}
           {selectedTicketId && checkoutStage==='eventDetails' && (
           <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
+            <StyledTimerCard timeLeft={timeLeft} />
             <div className="flex justify-between items-center">
               <p className="font-semibold">{selectedTicketName}</p>
               <p className="text-sm text-darkGrey">

@@ -62,4 +62,30 @@ export const endPoints: endPointlistTypes = {
     headers,
     // auth: true,
   },
+  //tickets
+  checkTicketAvailability: {
+    url: '/tickets',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
+  //checkout
+  initiateCheckout: {
+    url: '/checkout/initiate',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
+ cancelCheckout: {
+    url: '/checkout/cancel',
+    method: 'POST',
+    headers,
+    auth: true,
+  },
+  checkoutStatus: {
+    url: '/checkout',
+    method: 'GET',
+    headers,
+    auth: true,
+  },
 };

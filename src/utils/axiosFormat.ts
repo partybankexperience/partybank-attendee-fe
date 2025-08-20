@@ -121,7 +121,7 @@ export const apiCall = ({
 
         if (err.response?.status === 401) {
           Storage.clearItem();
-          window.location.href = `/?state=notAuthenticated&message=${encodeURIComponent(
+          window.location.href = `/login?state=notAuthenticated&message=${encodeURIComponent(
             errorMessage
           )}`;
           return;

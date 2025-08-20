@@ -7,6 +7,8 @@ import xtasyGroove from "../../assets/images/XtasyGroove.png";
 import cards from "../../assets/images/cards.png";
 import visa from "../../assets/images/visa-logo.png";
 import HomeLayout from "../../components/layouts/HomeLayout";
+import { useCheckoutStore } from "../../stores/checkoutStore";
+import DefaultButton from "../../components/buttons/DefaultButton";
 
 interface FormData {
   cardHolderName: string;
@@ -135,6 +137,19 @@ const Checkout: React.FC = () => {
     animate: { opacity: 1, x: 0 },
     transition: { duration: 0.5, ease: "easeOut" },
   };
+  const [isLoading, setisLoading] = useState(false)
+  const { paymentLink } = useCheckoutStore();
+
+  function handleCheckout() {
+    setisLoading(true)
+    try {
+      paymentLink && window.open(paymentLink, "_blank");
+    } catch (error) {
+      console.log(error)
+    } finally{
+      setisLoading(false)
+    }
+  }
 
   return (
     <>
@@ -179,9 +194,9 @@ const Checkout: React.FC = () => {
                   </div>
                 </motion.div>
 
-                <div className="lg:flex justify-center gap-1 mb-[4rem]">
-                  {/* Payment Methods Section - Left Side */}
-                  <motion.div
+                 <div className="lg:flex justify-center gap-1 mb-[4rem]">
+                  {/* //  Payment Methods Section - Left Side  */}
+                  {/*<motion.div
                     className="lg:w-1/2 p-6 lg:p-8 border-r-[2px] border-[#EDEDED]"
                     variants={staggerContainer}
                     initial="initial"
@@ -194,7 +209,7 @@ const Checkout: React.FC = () => {
                       Payment methods
                     </motion.h2>
 
-                    {/* Credit/Debit Card Option */}
+                    //  Credit/Debit Card Option 
                     <motion.div className="mb-6" variants={slideIn}>
                       <label className="flex items-center gap-3 mb-4">
                         <input
@@ -222,7 +237,7 @@ const Checkout: React.FC = () => {
                           animate={{ opacity: 1, height: "auto" }}
                           transition={{ duration: 0.3 }}
                         >
-                          {/* Card Holder Name */}
+                          //  Card Holder Name 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               Card Holder Name
@@ -242,7 +257,7 @@ const Checkout: React.FC = () => {
                             />
                           </div>
 
-                          {/* Card Number */}
+                           Card Number 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               Card Number
@@ -271,7 +286,7 @@ const Checkout: React.FC = () => {
                             </div>
                           </div>
 
-                          {/* Expiry Date and CVV */}
+                          // {/* Expiry Date and CVV 
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -322,7 +337,7 @@ const Checkout: React.FC = () => {
                       )}
                     </motion.div>
 
-                    {/* Bank Transfer Option */}
+                    // {/* Bank Transfer Option 
                     <motion.div variants={slideIn}>
                       <label className="flex items-center gap-3">
                         <input
@@ -338,7 +353,7 @@ const Checkout: React.FC = () => {
                         </span>
                       </label>
                     </motion.div>
-                  </motion.div>
+                  </motion.div>*/}
 
                   {/* Ticket Info Section - Right Side */}
                   <motion.div
@@ -428,7 +443,7 @@ const Checkout: React.FC = () => {
                     </p>
 
                     {/* Proceed Button */}
-                    <motion.button
+                    {/* <motion.button
                       className="w-full bg-primary hover:bg-red-700 text-white font-bold
                        py-4 px-6 rounded-xl text-lg transition-colors shadow-lg"
                       whileHover={{ scale: 1.02 }}
@@ -439,9 +454,12 @@ const Checkout: React.FC = () => {
                       }}
                     >
                       Proceed to Payment
-                    </motion.button>
+                    </motion.button> */}
+                    <DefaultButton isLoading={isLoading} variant="primary" onClick={handleCheckout} className="w-full mt-4">
+                    Proceed to Payment
+                    </DefaultButton>
                   </motion.div>
-                </div>
+                </div> 
               </motion.div>
             </div>
           </div>

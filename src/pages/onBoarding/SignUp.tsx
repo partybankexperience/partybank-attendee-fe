@@ -10,6 +10,7 @@ import { successAlert } from "../../components/alerts/ToastService";
 import { useTicketStore } from "../../stores/cartStore";
 import { Storage } from "../../stores/InAppStorage";
 import { StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
+import { useCheckoutStore } from "../../stores/checkoutStore";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -32,10 +33,12 @@ const SignUp = () => {
   const { setUser,setCheckoutStage ,checkoutStage,clearAuth } = useAuthStore();
   const location = useLocation();
   const emailFromLocation = location?.state?.email || "";
-  const { selectedTicketId, quantity, selectedTicketName,price } = useTicketStore();
+  const { selectedTicketId, quantity, selectedTicketName,price,reset } = useTicketStore();
   const redirect = Storage?.getItem("redirectPath") || null;
   const [endTime, setEndTime] = useState<Date | null>(null);
-
+const { cancelCheckout } = useCheckoutStore();
+const [timersInitialized, setTimersInitialized] = useState(false);
+  const eventName=Storage.getItem('eventName')
   const timeLeft = usePaymentTimer(endTime, () => {
     setEndTime(null);
   });
@@ -126,9 +129,21 @@ const SignUp = () => {
     useEffect(() => {
       if( checkoutStage === 'emailVerification' && selectedTicketId) {
         startTimer(10); // Start the timer with 10 minutes
+        setTimersInitialized(true);
       }
     }, [checkoutStage])
-    
+    useEffect(() => {
+      if (!timersInitialized) return; // Prevent running before timers are set
+      if (timeLeft === 0&& endTime === null) {
+        // Cancel the checkout process
+        cancelCheckout()
+        // Remove the cart data from local storage
+        reset()
+        // Timer expired, redirect to the event details page
+        navigate(`/event-details/${eventName}`);
+  
+      }
+    }, [timeLeft, eventName,timersInitialized,endTime]);
   return (
     <LoginLayout>
       <form className="grid mt-[2vh] md:mt-[0vh] gap-[2vh] h-fit " onSubmit={handleRegisterUser}>
