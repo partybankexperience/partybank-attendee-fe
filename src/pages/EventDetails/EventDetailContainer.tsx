@@ -16,13 +16,13 @@ import {
   formatTimeRange,
 } from "../../components/helpers/dateTimeHelpers";
 import { useAuthStore } from "../../stores/useAuthStore";
-import { useCheckoutStore } from "../../stores/checkoutStore";
+// import { useCheckoutStore } from "../../stores/checkoutStore";
 
 const EventDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { setCheckoutStage } = useAuthStore();
   const { slug } = useParams();
-  const { startCheckout } = useCheckoutStore();
+  // const { startCheckout } = useCheckoutStore();
   const {
     selectedTicketId,
     quantity,
@@ -62,7 +62,7 @@ const EventDetails: React.FC = () => {
     return}
     const user = Storage.getItem("user");
     console.log(user, "user in event details");
-    startCheckout(selectedTicketId,quantity)
+    // startCheckout(selectedTicketId,quantity)
     if (!user) {
       Storage.setItem("redirectPath", "/checkout");
       setCheckoutStage("eventDetails");
@@ -201,7 +201,7 @@ console.log(slug as string,'slug')
                 key={ticket.id}
                 isSelected={selectedTicketId === ticket.id}
                 quantity={selectedTicketId === ticket.id ? quantity : 0}
-                selectTicket={() => selectTicket(ticket,slug as string)}
+                selectTicket={() => selectTicket(ticket,slug as string,eventDetail)}
                 increaseQuantity={()=>increaseQuantity(ticket.purchaseLimit)}
                 decreaseQuantity={decreaseQuantity}
                 ticket={ticket}

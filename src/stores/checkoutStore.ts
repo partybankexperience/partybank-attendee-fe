@@ -43,6 +43,8 @@ export const useCheckoutStore = create<CheckoutState>()(
             expiresAt: res?.expiresAt ?? null,
             status: "pending",
           });
+          return res
+
         } catch (err) {
           console.error("Checkout initiation failed", err);
           set({ status: "failed" });
@@ -65,25 +67,47 @@ export const useCheckoutStore = create<CheckoutState>()(
         }
       },
 
-      cancelCheckout: async (reason = "User abandoned") => {
+      cancelCheckout:async(reason = "User abandoned") => {
         const { transactionId, holdToken } = get();
         if (!transactionId || !holdToken) return;
 
-        try {
-          await cancelCheckout(transactionId, reason, holdToken);
-          set({ status: "cancelled" });
-          set({
-            checkoutId: null,
-            transactionId: null,
-            holdToken: null,
-            status: "cancelled",
-            paymentLink: null,
-            expiresAt: null,
-          })
-        } catch (err) {
-          console.error("Cancel checkout failed", err);
-        }
+        // Prepare payload
+        const payload = JSON.stringify({ transactionId, reason, holdToken });
+
+        // Use sendBeacon to safely call backend even if user leaves
+        const baseUrl = import.meta.env.VITE_BASE_URL;
+        const url = `${baseUrl}/checkout/cancel`;
+        navigator.sendBeacon(url, new Blob([payload], { type: "application/json" }));
+
+        // Reset state locally
+        set({
+          checkoutId: null,
+          transactionId: null,
+          holdToken: null,
+          status: "cancelled",
+          paymentLink: null,
+          expiresAt: null,
+        });
       },
+      // cancelCheckout: async (reason = "User abandoned") => {
+      //   const { transactionId, holdToken } = get();
+      //   if (!transactionId || !holdToken) return;
+
+      //   try {
+      //     await cancelCheckout(transactionId, reason, holdToken);
+      //     set({ status: "cancelled" });
+      //     set({
+      //       checkoutId: null,
+      //       transactionId: null,
+      //       holdToken: null,
+      //       status: "cancelled",
+      //       paymentLink: null,
+      //       expiresAt: null,
+      //     })
+      //   } catch (err) {
+      //     console.error("Cancel checkout failed", err);
+      //   }
+      // },
 
       resetCheckout: () =>
         set({

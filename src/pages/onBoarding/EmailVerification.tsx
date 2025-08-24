@@ -102,10 +102,10 @@ const EmailVerification = () => {
     }
   }, [timeLeft, eventName,timersInitialized,endTime]);
   useEffect(() => {
-    if (!email && !otpSent) {
+    if (!email && !otpSent && email===null) {
       navigate("/login");
     }
-  }, [email, otpSent, navigate]);
+  }, [email, otpSent]);
   return (
     <LoginLayout>
       <form

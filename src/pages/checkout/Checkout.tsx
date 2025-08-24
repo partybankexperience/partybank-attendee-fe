@@ -1,33 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-// import { X, Calendar, Clock, MapPin, Ticket } from "lucide-react";
 import { Calendar, Clock, MapPin, Ticket } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import xtasyGroove from "../../assets/images/XtasyGroove.png";
-import cards from "../../assets/images/cards.png";
-import visa from "../../assets/images/visa-logo.png";
 import HomeLayout from "../../components/layouts/HomeLayout";
 import { useCheckoutStore } from "../../stores/checkoutStore";
 import DefaultButton from "../../components/buttons/DefaultButton";
+import { useTicketStore } from "../../stores/cartStore";
+import useCancelOnLeave from "./CancelCheckout";
+import { Storage } from "../../stores/InAppStorage";
+import { formatDate, formatTimeRange } from "../../components/helpers/dateTimeHelpers";
 
-interface FormData {
-  cardHolderName: string;
-  cardNumber: string;
-  expiryDate: string;
-  cvv: string;
-  paymentMethod: "card" | "bank";
-}
 
-interface TicketData {
-  eventName: string;
-  date: string;
-  time: string;
-  location: string;
-  ticketType: string;
-  quantity: number;
-  pricePerTicket: number;
-  total: number;
-}
+
 // interface CheckoutComponentType {
 //   onClose: () => void;
 // }
@@ -36,32 +21,9 @@ interface TicketData {
 const Checkout: React.FC = () => {
   // Timer state for checkout countdown
   const [timeLeft, setTimeLeft] = useState<number>(15 * 60 + 37); // 15:37 in seconds
-  const navigate = useNavigate();
-
-  // Payment Method
-  const [paymentMethodType, setPaymentMthodType] = useState<"card" | "bank">(
-    "card"
-  );
-  // Form state
-  const [formData, setFormData] = useState<FormData>({
-    cardHolderName: "",
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
-    paymentMethod: "card",
-  });
+  // const navigate = useNavigate();
 
   // Ticket data
-  const ticketData: TicketData = {
-    eventName: "Xtasy Groove",
-    date: "12 Apr 2025",
-    time: "4:00 PM - 2:00 AM",
-    location: "Port Harcourt, Nigeria EL-CIELO HOMES",
-    ticketType: "XTAS PASS",
-    quantity: 3,
-    pricePerTicket: 5000,
-    total: 15000,
-  };
 
   // Timer countdown effect
   useEffect(() => {
@@ -87,35 +49,6 @@ const Checkout: React.FC = () => {
     return `₦${price.toLocaleString()}`;
   };
 
-  // Handle form input changes
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handlePaymentMethodType = (method: "card" | "bank") => {
-    setPaymentMthodType(method);
-  };
-
-  // Format card number with spaces
-  const formatCardNumber = (value: string): string => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts: string[] = [];
-
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-
-    if (parts.length) {
-      return parts.join(" ");
-    } else {
-      return v;
-    }
-  };
 
   // Animation variants
   const fadeInUp = {
@@ -124,48 +57,41 @@ const Checkout: React.FC = () => {
     transition: { duration: 0.6, ease: "easeOut" },
   };
 
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const slideIn = {
-    initial: { opacity: 0, x: -20 },
-    animate: { opacity: 1, x: 0 },
-    transition: { duration: 0.5, ease: "easeOut" },
-  };
   const [isLoading, setisLoading] = useState(false)
-  const { paymentLink } = useCheckoutStore();
-
+  const { paymentLink,startCheckout } = useCheckoutStore();
+const {selectedTicketId,quantity,eventDetail,ticket,getTotal} = useTicketStore()
   function handleCheckout() {
     setisLoading(true)
+    if (!selectedTicketId) {
+      console.error("No ticket selected");
+      return;
+    }
     try {
-      paymentLink && window.open(paymentLink, "_blank");
+      startCheckout(selectedTicketId, quantity);
+      
     } catch (error) {
       console.log(error)
     } finally{
       setisLoading(false)
+    // paymentLink&& window.open(paymentLink, "_blank");
+ // Redirect in the same tab
+ if (paymentLink) {
+  window.location.href = paymentLink; // opens in the same tab
+} else {
+  console.error("Payment link not available");
+}
     }
   }
-
+    const eventName=Storage.getItem('eventName')
+  useCancelOnLeave(eventName);
   return (
     <>
       <HomeLayout>
-        <div
-          className="relative flex items-center justify-center"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-title"
-          // style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
-        >
+       
           <div
-            className=" bg-white py-4 px-4 lg:py-8 w-[95vw] md:w-[80vw] lg:w-[85vw] relative top-[-5rem]
-         rounded-2xl z-50"
+            className=" bg-white py-2 px-4 lg:py-8 w-[95vw] md:w-[80vw] lg:w-[85vw] relative top-[-5rem]
+         rounded-2xl z-50 max-w-6xl mx-auto "
           >
-            <div className="max-w-6xl mx-auto w-full">
               <motion.div
                 className="bg-white rounded-2xl shadow-lg overflow-hidden"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -174,7 +100,7 @@ const Checkout: React.FC = () => {
               >
                 {/* Header */}
                 <motion.div
-                  className="flex items-center justify-between p-6 lg:p-8"
+                  className="flex items-center justify-between pb-6 "
                   variants={fadeInUp}
                   initial="initial"
                   animate="animate"
@@ -195,232 +121,74 @@ const Checkout: React.FC = () => {
                 </motion.div>
 
                  <div className="lg:flex justify-center gap-1 mb-[4rem]">
-                  {/* //  Payment Methods Section - Left Side  */}
-                  {/*<motion.div
-                    className="lg:w-1/2 p-6 lg:p-8 border-r-[2px] border-[#EDEDED]"
-                    variants={staggerContainer}
-                    initial="initial"
-                    animate="animate"
-                  >
-                    <motion.h2
-                      className="text-xl font-semibold text-textBlack mb-6 red-hat-display"
-                      variants={slideIn}
-                    >
-                      Payment methods
-                    </motion.h2>
-
-                    //  Credit/Debit Card Option 
-                    <motion.div className="mb-6" variants={slideIn}>
-                      <label className="flex items-center gap-3 mb-4">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="card"
-                          checked={paymentMethodType === "card"}
-                          onChange={() => handlePaymentMethodType("card")}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                        />
-                        <span className="font-medium text-textBlack red-hat-display">
-                          Credit / Debit card
-                        </span>
-                        <div className="flex gap-2 ml-auto">
-                          <div>
-                            <img src={cards} alt="" />
-                          </div>
-                        </div>
-                      </label>
-
-                      {paymentMethodType === "card" && (
-                        <motion.div
-                          className="space-y-4 font-medium text-textBlack red-hat-display"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          //  Card Holder Name 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Card Holder Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Enter card holder name"
-                              value={formData.cardHolderName}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "cardHolderName",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none
-                              focus:ring-[0.1px] focus:ring-primary focus:border-primary transition-colors"
-                            />
-                          </div>
-
-                           Card Number 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Card Number
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="text"
-                                placeholder="1234 5678 9101 8112"
-                                value={formData.cardNumber}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    "cardNumber",
-                                    formatCardNumber(e.target.value)
-                                  )
-                                }
-                                maxLength={19}
-                                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg outline-none
-                                focus:ring-[0.1px] focus:ring-primary focus:border-primary transition-colors"
-                              />
-                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 
-                              border border-[#E9E9E9] p-3 rounded-md">
-                                <div>
-                                  <img src={visa} alt="" />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          // {/* Expiry Date and CVV 
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Expiry date
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="MM/YY"
-                                value={formData.expiryDate}
-                                onChange={(e) => {
-                                  let value = e.target.value.replace(/\D/g, "");
-                                  if (value.length >= 2) {
-                                    value =
-                                      value.substring(0, 2) +
-                                      "/" +
-                                      value.substring(2, 4);
-                                  }
-                                  handleInputChange("expiryDate", value);
-                                }}
-                                maxLength={5}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none
-                                focus:ring-[0.1px] focus:ring-primary focus:border-primary transition-colors"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                CVV
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="XXX"
-                                value={formData.cvv}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    "cvv",
-                                    e.target.value
-                                      .replace(/\D/g, "")
-                                      .substring(0, 3)
-                                  )
-                                }
-                                maxLength={3}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none
-                                focus:ring-[0.1px] focus:ring-primary focus:border-primary transition-colors"
-                              />
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </motion.div>
-
-                    // {/* Bank Transfer Option 
-                    <motion.div variants={slideIn}>
-                      <label className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="bank"
-                          checked={paymentMethodType === "bank"}
-                          onChange={() => handlePaymentMethodType("bank")}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                        />
-                        <span className="font-medium text-gray-900">
-                          Bank Transfer
-                        </span>
-                      </label>
-                    </motion.div>
-                  </motion.div>*/}
-
-                  {/* Ticket Info Section - Right Side */}
+                 {/* Ticket Info Section - Right Side */}
                   <motion.div
-                    className="lg:w-1/2  p-6 lg:p-8 bg-[#FFF2F4] rounded-[12px] mr-5 ml-5"
+                    className=" p-6 lg:p-8 bg-[#FFF2F4] md:rounded-[12px] "
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3, duration: 0.6 }}
                   >
-                    <h2 className="text-xl font-semibold text-textBlack mb-6 red-hat-display">
+                    {/* <h2 className="text-xl font-semibold text-textBlack mb-6 red-hat-display">
                       Ticket Info
-                    </h2>
+                    </h2> */}
 
                     {/* Event Details */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-4 mb-4">
+                    <div className="grid gap-2">
+                      <h2 className="text-lg font-bold text-textBlack ">
+                            {eventDetail.name}
+                          </h2>
+                      <div className="flex flex-col md:flex-row  gap-4 ">
                         <div className="rounded-lg overflow-hidden flex-shrink-0">
-                          <div>
                             <img
-                              src={xtasyGroove}
-                              alt=""
+                              src={eventDetail.bannerImage|| xtasyGroove}
+                              alt={eventDetail.name}
                               className="w-[5rem] md:w-[10rem] h-auto 
                           max-h-[45rem] lg:w-[8rem] lg:h-[10rem]"
                             />
-                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-textBlack mb-3">
-                            {ticketData.eventName}
-                          </h3>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 mb-6 font-semibold text-textBlack">
+                        <div className="space-y-3 font-semibold text-textBlack">
                         <div className="flex items-center gap-3 ">
                           <Calendar className="w-4 h-4 text-red-500" />
-                          <span className="text-sm">{ticketData.date}</span>
+                          <span className="text-sm">{" "}
+                                          {formatDate(eventDetail?.startDate)}{" "}
+                                          {eventDetail.endDate && `- ${formatDate(eventDetail.endDate)}`}{" "}</span>
                         </div>
 
                         <div className="flex items-center gap-3 ">
                           <Clock className="w-4 h-4 text-red-500" />
-                          <span className="text-sm">{ticketData.time}</span>
+                          <span className="text-sm">{formatTimeRange(eventDetail.startTime, eventDetail.endTime)}</span>
                         </div>
 
                         <div className="flex items-start gap-3 text-gray-700">
                           <MapPin className="w-4 h-4 text-red-500 mt-0.5" />
-                          <span className="text-sm">{ticketData.location}</span>
+                          <span className="text-sm">{eventDetail.venueName || "TBD"}</span>
                         </div>
                       </div>
+                        <div>
+                         
+                        </div>
+                      </div>
+
+                      
                     </div>
 
                     {/* Ticket Details */}
-                    <div className="mb-6">
+                    <div className="py-6">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Ticket className="w-4 h-4 text-primary" />
                           <span className="font-semibold ">
-                            x {ticketData.quantity} - {ticketData.ticketType}
+                            x {quantity} - {ticket.name}
                           </span>
                         </div>
-                        <span className="font-bold text-lg">
-                          {formatPrice(ticketData.total)}
-                        </span>
+                        {/* <span className="font-bold text-lg">
+                          {formatPrice(getTotal())}
+                        </span> */}
                       </div>
 
                       <div className="text-sm md:text-[14px] text-[#918F90] font-medium ml-6">
                         • Booking fee per ticket:{" "}
-                        {formatPrice(ticketData.pricePerTicket)}
+                        {formatPrice(ticket.price)}
                       </div>
                     </div>
 
@@ -431,7 +199,7 @@ const Checkout: React.FC = () => {
                           Total :
                         </span>
                         <span className="text-2xl font-bold text-primary">
-                          {formatPrice(ticketData.total)}
+                        {formatPrice(getTotal())}
                         </span>
                       </div>
                     </div>
@@ -461,9 +229,8 @@ const Checkout: React.FC = () => {
                   </motion.div>
                 </div> 
               </motion.div>
-            </div>
+            
           </div>
-        </div>
       </HomeLayout>
     </>
   );

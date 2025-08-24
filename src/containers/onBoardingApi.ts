@@ -46,4 +46,29 @@ const resendOTP=async(email:any,purpose:"signup"|"password"): Promise<any> => {
     });
     return response;
   };
-export { LoginUser, SignUpUser,verifyOtp,resendOTP,emailExists,initiateOtp };
+  const forgotPassword = async (email: string): Promise<any> => {
+    const response = await apiCall({
+      name: 'forgotPassword',
+      data: { email },
+    });
+    return response;
+  };
+  const forgotPasswordConfirmOTP = async (email: string, otp: string): Promise<any> => {
+    const response = await apiCall({
+      name: 'forgotPasswordOTP',
+      data: { email, otp },
+    });
+    return response;
+  };
+  const resetPassword = async (
+    email: string,
+    password: string,
+    confirmPassword: string,
+  ): Promise<any> => {
+    const response = await apiCall({
+      name: 'resetPassword',
+      data: { email, password, confirmPassword },
+    });
+    return response;
+  };
+export { LoginUser, SignUpUser,verifyOtp,resendOTP,emailExists,initiateOtp,forgotPassword,forgotPasswordConfirmOTP,resetPassword };
