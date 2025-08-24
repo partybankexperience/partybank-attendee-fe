@@ -1,18 +1,17 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { User, Ticket, Settings, LogOut, X } from "lucide-react";
-import ProfileComponent from "./Profile_page_component";
-import TicketManagement from "./Ticket";
-import Profile_Settings from "./Settings";
-
-
-
+// import ProfileComponent from "./ProfilePageComponent";
+import TicketManagement from "../Profile/Ticket";
+import Profile_Settings from "../Profile/Settings";
+import ProfileComponent from "../Profile/ProfilePageComponent";
+import HomeLayout from "../../components/layouts/HomeLayout";
 
 interface sideItemsType {
   icon: React.ElementType;
   label: "My Profile" | "My Tickets" | "Settings" | "Log Out";
 }
-const Profile_layout: React.FC = () => {
+const Profile: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeButton, setActiveButton] = useState<
@@ -75,7 +74,7 @@ const Profile_layout: React.FC = () => {
   };
 
   const sidebarVariants = {
-    hidden: {  opacity: 0 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: { duration: 0.4, ease: "easeOut" as const },
@@ -99,10 +98,10 @@ const Profile_layout: React.FC = () => {
               variants={itemVariants}
               className={`w-full flex items-center gap-3 px-4 py-4 mb-2 rounded-lg 
                 text-left transition-all duration-200 hover:scale-[1.5rem] hover:shadow-sm ${
-                item.label === activeButton
-                  ? "bg-red-500 text-white "
-                  : "bg-white text-gray-700 hover:text-gray-900"
-              }`}
+                  item.label === activeButton
+                    ? "bg-red-500 text-white "
+                    : "bg-white text-gray-700 hover:text-gray-900"
+                }`}
               onClick={() => {
                 setActiveButton(item.label);
                 setIsMobileSidebarOpen(false);
@@ -118,62 +117,66 @@ const Profile_layout: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-white lg:w-[90vw] rounded-3xl shadow-lg">
-      {/* Mobile Sidebar Overlay */}
-      {isMobile && isMobileSidebarOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsMobileSidebarOpen(false)}
-        />
-      )}
-
-      <div className="flex">
-        {/* Desktop Sidebar */}
-        {!isMobile && <Sidebar />}
-
-        {/* Mobile Sidebar */}
-        {isMobile && isMobileSidebarOpen && (
-          <motion.div
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed right-[2rem] top-[5rem] z-50 w-[100vw] bg-red"
-          >
-            <Sidebar />
-            <button
+    <HomeLayout>
+      <div className="flex justify-center items-center relative top-[-5rem] z-50">
+        <div className="min-h-screen bg-white lg:w-[90vw] rounded-3xl shadow-lg">
+          {/* Mobile Sidebar Overlay */}
+          {isMobile && isMobileSidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="absolute top-4 right-4 p-2 text-gray-600 hover:text-gray-900"
-            >
-              <X size={20} />
-            </button>
-          </motion.div>
-        )}
+            />
+          )}
 
-        {isMobile && (
-          <button
-            onClick={() => setIsMobileSidebarOpen(true)}
-            className="absolute top-4 right-4 p-2 text-gray-600 hover:text-gray-900"
-          >
-            <X size={20} />
-          </button>
-        )}
-        {/* Main Content */}
-        <motion.main
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="flex-1 p-6 md:p-8 lg:p-12 max-w-4xl mx-auto w-full"
-        >
-          {activeComponent()}
-          {/* <ProfileComponent /> */}
-        </motion.main>
+          <div className="flex">
+            {/* Desktop Sidebar */}
+            {!isMobile && <Sidebar />}
+
+            {/* Mobile Sidebar */}
+            {isMobile && isMobileSidebarOpen && (
+              <motion.div
+                initial={{ x: -280 }}
+                animate={{ x: 0 }}
+                exit={{ x: -280 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="fixed right-[2rem] top-[5rem] z-50 w-[100vw] bg-red"
+              >
+                <Sidebar />
+                <button
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="absolute top-4 right-4 p-2 text-gray-600 hover:text-gray-900"
+                >
+                  <X size={20} />
+                </button>
+              </motion.div>
+            )}
+
+            {isMobile && (
+              <button
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="absolute top-4 right-4 p-2 text-gray-600 hover:text-gray-900"
+              >
+                <X size={20} />
+              </button>
+            )}
+            {/* Main Content */}
+            <motion.main
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex-1 p-6 md:p-8 lg:p-12 max-w-4xl mx-auto w-full"
+            >
+              {activeComponent()}
+              {/* <ProfileComponent /> */}
+            </motion.main>
+          </div>
+        </div>
       </div>
-    </div>
+    </HomeLayout>
   );
 };
 
-export default Profile_layout;
+export default Profile;
