@@ -1,81 +1,21 @@
-// import { create } from 'zustand'
-
-// interface TicketState {
-//     selectedTicketId: string | null;
-//     quantity: number;
-//     selectTicket: (ticketId: string) => void;
-//     increaseQuantity: () => void;
-//     decreaseQuantity: () => void;
-//     reset: () => void;
-//     getTotal: () => number;
-//     ticketPrices: Record<string, number>;
-//   }
-
-// export const useTicketStore = create<TicketState>((set,get) => ({
-//   selectedTicketId: null,
-//   quantity: 0,
-//   ticketPrices: {
-//     xtasyPass: 5000,
-//     godMode: 10000,
-//     xtasy: 15000,
-//   },
-//   // Select a ticket type
-//   selectTicket: (ticketId:any) =>
-//     set((state:any) => {
-//       // If selecting the same ticket, keep quantity
-//       if (state.selectedTicketId === ticketId) {
-//         return state
-//       }
-//       // If switching to a different ticket, reset quantity to 1
-//       return {
-//         selectedTicketId: ticketId,
-//         quantity: 1
-//       }
-//     }),
-
-//   // Increase quantity
-//   increaseQuantity: () =>
-//     set((state:any) => {
-//       if (!state.selectedTicketId) return state // no ticket selected
-//       return { quantity: state.quantity + 1 }
-//     }),
-
-//   // Decrease quantity
-//   decreaseQuantity: () =>
-//     set((state:any) => {
-//       if (!state.selectedTicketId) return state
-//       const newQty = Math.max(state.quantity - 1, 0)
-//       return { quantity: newQty }
-//     }),
-
-//   // Reset store
-//   reset: () => set({ selectedTicketId: null, quantity: 0 }),
-
-//   getTotal: () => {
-//     const state = get();
-//     if (!state.selectedTicketId) return 0;
-//     const price = state.ticketPrices[state.selectedTicketId] || 0;
-//     return price * state.quantity;
-//   }
-// }))
-import { create } from 'zustand';
-import { Storage } from './InAppStorage'; // your utility
+import { create } from "zustand";
+import { Storage } from "./InAppStorage";
 
 interface TicketState {
   selectedTicketId: string | null;
   quantity: number;
-  ticketPrices: Record<string, number>;
-  selectTicket: (ticketId: string) => void;
-  increaseQuantity: () => void;
+  price: number | null;
+  selectedTicketName?: string | null;
+  selectTicket: (ticket: any,eventName:String) => void;
+  // Update the function signature to accept a limit
+  increaseQuantity: (limit?: number) => void;
   decreaseQuantity: () => void;
   reset: () => void;
   getTotal: () => number;
-  price: number | null;
-  selectedTicketName?: string | null;
 }
 
 // Helper key for localStorage
-const STORAGE_KEY = 'selectedTicket';
+const STORAGE_KEY = "selectedTicket";
 
 export const useTicketStore = create<TicketState>((set, get) => ({
   // Try to load from localStorage initially
@@ -84,37 +24,41 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   selectedTicketName: Storage.getItem(STORAGE_KEY)?.selectedTicketName || null,
   quantity: Storage.getItem(STORAGE_KEY)?.quantity || 0,
 
-  ticketPrices: {
-    xtasyPass: 5000,
-    godMode: 10000,
-    xtasy: 15000,
-  },
-
-  selectTicket: (ticket:any) => {
+  selectTicket: (ticket: any,eventName:String) => {
     set((state) => {
-      const newState = state.selectedTicketId === ticket.id
-        ? state
-        : { selectedTicketId: ticket.id, quantity: 1, selectedTicketName: ticket.name, price:ticket.price };
+      const isSameTicket = state.selectedTicketId === ticket.id;
+      const newState = {
+        selectedTicketId: ticket.id,
+        quantity: isSameTicket ? state.quantity : 1, // Keep quantity if same, else reset to 1
+        selectedTicketName: ticket.name,
+        price: ticket.price,
+      };
 
       // Persist to localStorage
-      Storage.setItem(STORAGE_KEY, {
-        selectedTicketId: newState.selectedTicketId,
-        quantity: newState.quantity,
-        selectedTicketName: newState.selectedTicketName, price:newState.price
-      });
+      Storage.setItem(STORAGE_KEY, newState);
+      Storage.setItem('eventName', eventName);
+      // console.log(eventName, "Event Name in Ticket Store");
 
       return newState;
     });
   },
 
-  increaseQuantity: () => {
+  // The key change is here 👇
+  increaseQuantity: (limit?: number) => {
     set((state) => {
       if (!state.selectedTicketId) return state;
 
+      // If a limit is provided and the quantity is already at the limit, do nothing.
+      if (limit && state.quantity >= limit) {
+        return state;
+      }
+
       const newQty = state.quantity + 1;
+      // Update localStorage if you use it
       Storage.setItem(STORAGE_KEY, {
         selectedTicketId: state.selectedTicketId,
         quantity: newQty,
+        price: state.price,
       });
 
       return { quantity: newQty };
@@ -124,26 +68,29 @@ export const useTicketStore = create<TicketState>((set, get) => ({
   decreaseQuantity: () => {
     set((state) => {
       if (!state.selectedTicketId) return state;
-
-      const newQty = Math.max(state.quantity - 1, 1); // minimum 1
+      const newQty = Math.max(state.quantity - 1, 1); // Minimum is 1
       Storage.setItem(STORAGE_KEY, {
         selectedTicketId: state.selectedTicketId,
         quantity: newQty,
+        price: state.price,
       });
-
       return { quantity: newQty };
     });
   },
 
   reset: () => {
     Storage.removeItem(STORAGE_KEY);
-    set({ selectedTicketId: null, quantity: 0 });
+    set({
+      selectedTicketId: null,
+      quantity: 0,
+      price: null,
+      selectedTicketName: null,
+    });
   },
 
   getTotal: () => {
     const state = get();
-    if (!state.selectedTicketId) return 0;
-    const price = state.price || 0;
-    return price * state.quantity;
+    if (!state.selectedTicketId || !state.price) return 0;
+    return state.price * state.quantity;
   },
 }));

@@ -1,4 +1,5 @@
 const maskEmail = (email: string) => {
+  if (!email || typeof email !== "string") return ""; // or "N/A"
     const [username, domain] = email.split("@");
     const maskedUsername = username[0] + "*********"; // Mask username
     const maskedDomain = domain.slice(0, 1) + "****" + domain.slice(-3); // Mask domain

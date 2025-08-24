@@ -116,7 +116,7 @@ const DefaultInput = forwardRef<HTMLInputElement, DefaultInputProps>(
     hover:shadow-[0_0_0_2px_rgba(77,64,85,0.1)] focus:shadow-[0_0_0_2px_rgba(77,64,85,0.1)] 
     ${hasError ? 'border-red' : isFilled ? 'border-purple' : 'border-neutral'} 
     hover:border-lightPurple focus:border-lightPurple 
-    disabled:bg-darkGrey disabled:cursor-not-allowed bg-white`;
+    disabled:bg-mutedBlueGrey disabled:cursor-not-allowed bg-white`;
 
     const paddingLeft = leftContent ? 'pl-[40px]' : '';
     const needsRightPadding =

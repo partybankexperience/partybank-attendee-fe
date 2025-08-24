@@ -12,11 +12,13 @@ import React from "react";
 
 import DefaultButton from "../buttons/DefaultButton";
 import { useAuthStore } from "../../stores/useAuthStore";
+import { ToastContainer } from "react-toastify";
 
 const HomeLayout = ({ children }: React.PropsWithChildren) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
+  const {setCheckoutStage} = useAuthStore();
   const pathnames = location.pathname
     .split("/")
     .filter((x) => x)
@@ -27,6 +29,7 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
         text.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   return (
     <>
+    <ToastContainer/>
       {/* Small sidebar */}
       <nav
         className="md:hidden bg-white py-[1rem] px-[1.2rem] flex gap-[1rem] items-center"
@@ -79,19 +82,29 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
   </div>
 ) : (
   <div className="flex gap-[1.5rem] items-center">
-    <a href="/signup" className="text-primary" aria-label="Create Account">
+    {/* <a href="/signup" className="text-primary" aria-label="Create Account">
       Create Account
-    </a>
-    <a
+    </a> */}
+    <button
+      onClick={() => {
+      // Storage.setItem("checkoutStage", null);
+      setCheckoutStage('');
+      navigate("/login");
+      }}
+      aria-label="Sign in to your account"
+      className="font-bold rounded-[8px] text-[16px] w-fit cursor-pointer disabled:cursor-not-allowed disabled:border-mutedBlueGrey bg-primary text-white hover:bg-pink focus:border-darkRed py-[10px] px-[32px]"
+    >
+      Sign In
+    </button>
+    {/* <a
       href="/login"
       aria-label="Sign in to your account"
       className="font-bold rounded-[8px] text-[16px] w-fit cursor-pointer disabled:cursor-not-allowed disabled:border-mutedBlueGrey bg-primary text-white hover:bg-pink focus:border-darkRed py-[10px] px-[32px]"
     >
       Sign In
-    </a>
+    </a> */}
   </div>
 )}
-
       </nav>
 
       {/* Background banner */}

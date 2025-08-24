@@ -21,6 +21,11 @@ export type endPointlistTypes = {
   resendOtp:endpointTypes;
   emailExists:endpointTypes;
   getEventBySlug:endpointTypes;
+  sendOtp:endpointTypes;
+  checkTicketAvailability:endpointTypes;
+  initiateCheckout:endpointTypes;
+  cancelCheckout:endpointTypes;
+  checkoutStatus:endpointTypes;
 };
 
 export type urlPropTypes = {

@@ -11,8 +11,7 @@ import EventDetails from "./pages/EventDetails/EventDetailContainer";
 import Confirmation from "./pages/Confirmation/TicketConfirmation";
 import Profile from "./pages/Profile/ProfileLayout";
 import LandingPage from "./pages/LandingPage/LandingPage";
-
-
+import VerificationRoute from "./utils/verificationRoute";
 
 
 function App() {
@@ -38,7 +37,11 @@ function App() {
       />
       <Route
         path="/signup"
-        element={<SignUp />}
+        element={
+        <VerificationRoute>
+<SignUp />
+        </VerificationRoute>
+        }
       />
       <Route
         path="/email-verification"

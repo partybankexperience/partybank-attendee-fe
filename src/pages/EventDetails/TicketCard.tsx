@@ -1,10 +1,19 @@
 import { motion } from "framer-motion";
+import { FiUsers, FiShoppingBag } from "react-icons/fi"; 
 
-interface TicketCardProps {
-  ticketId: string;
+interface Ticket {
+  id: string;
   name: string;
   price: number;
-  soldOut?: boolean;
+  isSoldOut?: boolean;
+  perks: string[];
+  groupSize: number;
+  purchaseLimit: number;
+  isUnlimited: boolean;
+}
+
+interface TicketCardProps {
+  ticket: Ticket;
   isSelected: boolean;
   quantity: number;
   selectTicket: () => void;
@@ -13,93 +22,120 @@ interface TicketCardProps {
 }
 
 const TicketCard: React.FC<TicketCardProps> = ({
-  ticketId,
-  name,
-  price,
-  soldOut,
+  ticket,
   isSelected,
   quantity,
   selectTicket,
   increaseQuantity,
   decreaseQuantity,
 }) => {
-  const truncateWords = (text: string, wordLimit: number) => {
-    const words = text.split(" ");
-    if (words.length <= wordLimit) return text;
-    return words.slice(0, wordLimit).join(" ") + "...";
-  };
+  const {
+    name,
+    price,
+    isSoldOut,
+    perks,
+    groupSize,
+    purchaseLimit,
+    isUnlimited,
+  } = ticket;
+
+  // A simple utility to prevent the scrollbar from showing if not needed
+  const perkContainerClass = perks.length > 3 ? "scrollbar-hide" : "";
 
   return (
     <div
-      className={`relative w-full bg-white rounded-xl overflow-hidden md:h-[5rem] flex items-center ${isSelected ? "border-1 border-primary" : "border-gray-200"} 
-         ${
-        soldOut ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-      }`}
-      onClick={() => !soldOut && selectTicket()}
+      onClick={() => !isSoldOut && selectTicket()}
+      className={`relative  bg-white rounded-xl p-4 flex flex-col gap-3 transition-all duration-300 md:w-[20rem]
+        ${
+          isSelected
+            ? "ring-2 ring-primary shadow-lg"
+            : "border border-gray-200"
+        }
+        ${
+          isSoldOut
+            ? "opacity-50 cursor-not-allowed"
+            : "cursor-pointer hover:shadow-md"
+        }`}
     >
-      <div className="w-full h-full flex relative">
-        {/* Pink border overlay */}
-        <div className={`"absolute inset-0  border-primary pointer-events-none rounded-xl" `}></div>
+      {/* Top section: Info + Quantity Controls */}
+      <div className="flex items-start justify-between w-full">
+        {/* Left side: Ticket details */}
+        <div className="flex flex-col w-full flex-1 min-w-0">
+          <div className="flex items-center justify-between w-full gap-5">
+            <h3 className="text-base font-bold text-[#231F20] uppercase red-hat-display truncate" title={name} >
+              {name}
+            </h3>
+            {/* Right side: Controls or Sold Out text */}
+            <div className="flex items-center h-full flex-shrink-0">
+              {isSelected && !isSoldOut && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-center space-x-2"
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      decreaseQuantity();
+                    }}
+                    disabled={quantity <= 1}
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 text-pink-600 text-xl font-bold transition-colors duration-200 hover:bg-pink-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    −
+                  </button>
+                  <span className="text-lg font-semibold text-gray-800 w-6 text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      increaseQuantity();
+                    }}
+                    disabled={quantity >= purchaseLimit}
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 text-pink-600 text-xl font-bold transition-colors duration-200 hover:bg-pink-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    +
+                  </button>
+                </motion.div>
+              )}
 
-        {/* Content */}
-        <motion.div
-          className="p-4 flex items-center justify-between w-full h-full"
-        >
-          {/* Ticket name & price */}
-          <div className="flex flex-col h-full">
-            <span
-              className="text-[.9rem] font-semibold text-[#231F20] uppercase cursor-pointer red-hat-display"
-              title={name}
-            >
-              {truncateWords(name, 2)}
-            </span>
-            <span className="text-[.8rem] font-semibold text-primary mt-1 red-hat-display">
-              ₦{price.toLocaleString()}
-            </span>
-          </div>
-
-          {/* Vertical dashed line */}
-          <div className="absolute right-[48%] md:right-[15rem] lg:left-[11.15rem] top-0 bottom-0 flex items-center justify-center">
-            <div className="border-l-2 border-dashed border-pink-300 h-full my-2"></div>
-          </div>
-
-          {/* Perforation circles */}
-          <div className="absolute right-[45%] lg:left-[11rem] lg:w-[60%] top-0 bottom-0 flex flex-col justify-between h-full">
-            <div className="w-5 h-5 bg-faintPink rounded-full -ml-2 -mt-2 border-1 border-primary"></div>
-            <div className="w-5 h-5 bg-faintPink rounded-full -ml-2 -mb-2 border-1 border-primary"></div>
-          </div>
-
-          {/* Quantity controls */}
-          {isSelected && !soldOut && (
-            <div className="flex items-center space-x-2 ml-auto relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  decreaseQuantity();
-                }}
-                disabled={quantity <= 1}
-                className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 text-pink-600 text-xl font-bold transition-colors duration-200 hover:bg-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
-              >
-                −
-              </button>
-              <span className="text-lg font-semibold text-gray-800 w-6 text-center">
-                {quantity}
-              </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  increaseQuantity();
-                }}
-                className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 text-pink-600 text-xl font-bold transition-colors duration-200 hover:bg-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
-              >
-                +
-              </button>
+              {isSoldOut && (
+                <span className="text-red-500 font-bold text-sm">Sold Out</span>
+              )}
             </div>
-          )}
-
-          {soldOut && <span className="text-red-500 font-bold text-[.9rem]">Sold Out</span>}
-        </motion.div>
+          </div>
+          <span className="text-sm font-semibold text-primary mt-1 red-hat-display">
+            ₦{price.toLocaleString()}
+          </span>
+          <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 w-full ">
+            <span className="flex items-center gap-1">
+              <FiUsers /> For {groupSize} {groupSize > 1 ? "People" : "Person"}
+            </span>
+            {purchaseLimit && (
+              <span className="flex items-center gap-1">
+                <FiShoppingBag /> Max {purchaseLimit}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Bottom section: Perks */}
+      {perks && perks.length > 0 && (
+        <div
+          className={`flex items-center gap-2 overflow-x-auto pt-2 -mb-1 ${perkContainerClass}`}
+        >
+          {perks.map((perk, index) => (
+            <div
+              key={index}
+              className="bg-gray-100 text-gray-700 text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap"
+            >
+              {perk}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

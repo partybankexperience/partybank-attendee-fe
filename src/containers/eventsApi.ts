@@ -14,9 +14,16 @@ const getEventBySlug=async (slug:string): Promise<any> => {
       name: 'getEventBySlug',
       urlExtra: `/${slug}`,
       alert: false,
-      // params: { slug },
+      params: { viewer:'attendee' },
     });
     return response;
   };
-
-export {getEvents,getEventBySlug}
+const checkticketAvailability=async (ticketId:string,quantity:string): Promise<any> => {
+    const response = await apiCall({
+      name: 'checkTicketAvailability',
+      urlExtra: `/${ticketId}/check-availability`,
+      data: {quantity },
+    });
+    return response;
+  };
+export {getEvents,getEventBySlug,checkticketAvailability}

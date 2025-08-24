@@ -3,11 +3,13 @@ import LoginLayout from "../../components/layouts/LoginLayout";
 import { useLocation, useNavigate } from "react-router";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import DefaultInput from "../../components/inputs/DefaultInput";
-import { emailExists, LoginUser } from "../../containers/onBoardingApi";
+import { emailExists, initiateOtp, LoginUser } from "../../containers/onBoardingApi";
 import { Storage } from "../../stores/InAppStorage";
 import { errorAlert } from "../../components/alerts/ToastService";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useTicketStore } from "../../stores/cartStore";
+import { useCheckoutStore } from "../../stores/checkoutStore";
+import { StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
 
 const Login = () => {
   const [email, setemail] = useState("");
@@ -27,102 +29,157 @@ const Login = () => {
   const queryParams = new URLSearchParams(location.search);
   const message = queryParams.get("message");
   const state = queryParams.get("state");
-  const { setUser } = useAuthStore();
-  const { selectedTicketId, quantity,selectedTicketName,price } = useTicketStore();
-  useEffect(() => {
-    if (!emailExist && buttonClicked) {
-      const timer = setInterval(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
+  const { setUser,checkoutStage,setCheckoutStage,setEmail, markOtpSent } = useAuthStore();
+  const { selectedTicketId, quantity,selectedTicketName,price,reset } = useTicketStore();
+   const [endTime, setEndTime] = useState<Date | null>(null);
+  const { cancelCheckout } = useCheckoutStore();
+  const [timersInitialized, setTimersInitialized] = useState(false);
+    const eventName=Storage.getItem('eventName')
+    const timeLeft = usePaymentTimer(endTime, () => {
+      setEndTime(null);
+    });
+  
+    const startTimer = (durationInMinutes: number) => {
+      // Calculate the end time based on the input duration
+      const targetTime = new Date(new Date().getTime() + durationInMinutes * 60 * 1000);
+      setEndTime(targetTime);
+    };
+    // Use a ref to store the interval ID
+    const timerRef = useRef<any>(null);
 
-      if (countdown === 0) {
-        navigate("/signup", { state: { email } });
+    useEffect(() => {
+      if (state === "notAuthenticated" && message) {
+        errorAlert("Error", decodeURIComponent(message));
+        const timer = setTimeout(() => {
+          navigate("/login", { replace: true, state: null });
+        }, 2000);
+        return () => clearTimeout(timer);
       }
-
-      return () => clearInterval(timer);
-    }
-  }, [emailExist, buttonClicked, countdown]);
-
-  useEffect(() => {
-    if (state === "notAuthenticated" && message) {
-      errorAlert("Error", decodeURIComponent(message));
-      const timer = setTimeout(() => {
-        navigate("/checkout", { replace: true, state: null });
-      }, 2000); // Give time for user to read the notification
-      return () => clearTimeout(timer); // Cleanup the timer on component unmount
-    }
-  }, [state, message]);
-  const redirect = Storage?.getItem("redirectPath") || null;
-
-  const checkIfEmailExists = async (e: React.FormEvent) => {
-    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // return emailRegex.test(email);
-    e.preventDefault();
-    if (emailError) {
-      if (emailError && emailRef.current) {
-        emailRef.current.focus();
-      }
-      return;
-    }
-    setisLoading(true);
-    try {
-      const res = await emailExists(email);
-      console.log(res, "Email Exists Response");
-
-      setemailExist(res.exists);
-      if (!res.exists) {
-        setTimeout(() => {
-          navigate("/signup", { state: { email } });
-        }, 10000);
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setbuttonClicked(true);
-      setisLoading(false);
-    }
-  };
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (emailError) {
-      if (emailError && emailRef.current) {
-        emailRef.current.focus();
-      }
-      return;
-    }
-    if (passwordError) {
-      if (passwordError && passwordRef.current) {
-        passwordRef.current.focus();
-      }
-      return;
-    }
-    try {
-      setisLoading(true);
-      const res = await LoginUser(email, password);
-      setUser(res);
-      console.log(res, "Login Response");
-      if (redirect) {
-        Storage.removeItem("redirectPath");
-        navigate(redirect);
+    }, [state, message, navigate]);
+  
+    // Clean up the countdown timer when the component unmounts
+    useEffect(() => {
+      return () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+      };
+    }, []);
+  console.log(checkoutStage, "Checkout Stage");
+    const redirect = Storage?.getItem("redirectPath") || null;
+  
+    const checkIfEmailExists = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (emailError) {
+          emailRef.current?.focus();
+          return;
+        }
+      
+        setisLoading(true);
+        setbuttonClicked(true); // Show countdown div immediately
+      
+        try {
+          const res = await emailExists(email);
+          setemailExist(res.exists);
+      
+          if (!res.exists) {
+            // Send OTP
+            await initiateOtp(email);
+      
+            // Store email + stage
+            setEmail(email);
+            markOtpSent();
+            if (checkoutStage === "eventDetails") {
+              setCheckoutStage("login");
+            }
+      
+            // Prepare countdown value
+            setCountdown(10);
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setisLoading(false);
+      
+          // 🔑 Start countdown *only after loading ends and OTP was sent*
+          if (!emailExist) {
+            timerRef.current = setInterval(() => {
+              setCountdown((prev) => {
+                if (prev <= 1) {
+                  clearInterval(timerRef.current);
+                  navigate("/email-verification", { state: { email } });
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          }
+        }
+      };
+      
+  
+    const handleSignIn = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (emailError) {
+        if (emailRef.current) {
+          emailRef.current.focus();
+        }
         return;
-      } else navigate(-1);
-    } catch (error) {
-      console.log(error);
-      setisLoading(false);
-    } finally {
-      setisLoading(false);
-    }
-  };
-  // Dummy ticket data (replace with real cart data later)
- 
-  const handleLogin = (e: any) => {
-    if (emailExist && buttonClicked) {
-      handleSignIn(e);
-    } else {
-      checkIfEmailExists(e);
-    }
-  };
-  return (
+      }
+      if (passwordError) {
+        if (passwordRef.current) {
+          passwordRef.current.focus();
+        }
+        return;
+      }
+      try {
+        setisLoading(true);
+        const res = await LoginUser(email, password);
+        setUser(res);
+        if(checkoutStage==='eventDetails'){
+        // Storage.setItem("checkoutStage", "signUp");
+        setCheckoutStage('signUp');
+        if (redirect && checkoutStage==='eventDetails') {
+          Storage.removeItem("redirectPath");
+          navigate(redirect);
+        } 
+        }else navigate(-1);
+      } catch (error) {
+        console.error(error);
+        setisLoading(false);
+      } finally {
+        setisLoading(false);
+      }
+    };
+  
+    const handleLogin = (e: any) => {
+      e.preventDefault(); // Add this here to prevent default form behavior
+      if (emailExist && buttonClicked) {
+        handleSignIn(e);
+      } else {
+        checkIfEmailExists(e);
+      }
+    };
+    useEffect(() => {
+        if( checkoutStage === 'emailVerification' && selectedTicketId) {
+          startTimer(10); // Start the timer with 10 minutes
+          setTimersInitialized(true);
+        }
+      }, [checkoutStage])
+      useEffect(() => {
+        if (!timersInitialized) return; // Prevent running before timers are set
+        if (timeLeft === 0&& endTime === null) {
+          // Cancel the checkout process
+          cancelCheckout()
+          // Remove the cart data from local storage
+          reset()
+          // Timer expired, redirect to the event details page
+          navigate(`/event-details/${eventName}`);
+    
+        }
+      }, [timeLeft, eventName,timersInitialized,endTime]);
+
+      return (
     <LoginLayout>
       <form
         className="grid mt-[2vh] md:mt-[2vh] gap-[3vh] h-fit w-full "
@@ -130,12 +187,13 @@ const Login = () => {
       >
         <div className="grid gap-[10px] text-center md:text-left">
           <h1 className=" text-3xl font-semibold">Login to your account</h1>
-          {/* <p className=" text-lightGrey font-normal text-sm">
-            Let’s sign in quickly to continue to your account.
-          </p> */}
+          <p className=" text-lightGrey font-normal text-sm">
+            Please enter your email to get started!
+          </p>
           {/* Ticket Summary */}
-          {selectedTicketId && redirect && (
+          {selectedTicketId && checkoutStage==='eventDetails' && (
           <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
+            <StyledTimerCard timeLeft={timeLeft} />
             <div className="flex justify-between items-center">
               <p className="font-semibold">{selectedTicketName}</p>
               <p className="text-sm text-darkGrey">
@@ -164,36 +222,7 @@ const Login = () => {
             setExternalError={setEmailError}
             // setExternalError={setEmailError}
           />
-          {/* {emailExist && buttonClicked? (
-          <div>
-            <DefaultInput
-              id="loginPassword"
-              label="Password"
-              placeholder="********"
-              type="password"
-              style="!w-full"
-              value={password}
-              setValue={setpassword}
-              required
-              ref={passwordRef}
-              setExternalError={setPasswordError}
-              classname="!mb-0 "
-            />
-            <div className="text-right m-0 ">
-              <a
-                className="text-[14px] text-red cursor-pointer hover:underline"
-                onClick={() => navigate("/forgot-password")}
-                role="link"
-                tabIndex={0}
-              >
-                Forgot password?
-              </a>
-            </div>
-          </div>
-
-          ):(
-            <p className="text-red text-[14px]">Email does not exist, You would be redirected to signup in 10s</p>
-          )} */}
+           
           {buttonClicked &&
             (emailExist ? (
               <div>
@@ -219,18 +248,18 @@ const Login = () => {
                   </a>
                 </div>
               </div>
-            ) : (
+            ) : !isLoading && (
               <div className="text-center text-red text-[14px] animate-fadeIn">
                 <p>We couldn’t find an account with that email.</p>
                 <p>
-                  Creating one only takes a moment — we’ll take you there in{" "}
+                  Please verify your email — we’ll take you there in{" "}
                   <strong>{countdown}</strong> seconds...
                 </p>
                 <button
                   className="mt-2 text-blue underline"
-                  onClick={() => navigate("/signup", { state: { email } })}
+                  onClick={() => navigate("/email-verification", { state: { email } })}
                 >
-                  Go to Sign Up Now
+                  Go Now
                 </button>
               </div>
             ))}
@@ -259,7 +288,8 @@ const Login = () => {
             Sign in with Google
           </DefaultButton> */}
         </div>
-        <p className="text-[#A7A5A6]  text-[14px]  mt-[0.5vh] text-center">
+        {/* no need for this cause you need to verify the user email first */}
+        {/* <p className="text-[#A7A5A6]  text-[14px]  mt-[0.5vh] text-center">
           Don’t have an account?{"  "}
           <span
             className="text-red cursor-pointer hover:text-deepRed"
@@ -269,7 +299,7 @@ const Login = () => {
           >
             Sign up
           </span>
-        </p>
+        </p> */}
       </form>
     </LoginLayout>
   );
