@@ -215,7 +215,7 @@ const Login = () => {
             <div className="flex justify-between items-center">
               <p className="font-semibold">{selectedTicketName}</p>
               <p className="text-sm text-darkGrey">
-                {quantity} × {price?.toLocaleString()}
+                {quantity} × {price ? price.toLocaleString() : "Free"}
               </p>
             </div>
             {/* <span className="font-bold text-red">{ticket.price}</span> */}

@@ -10,7 +10,8 @@ interface Ticket {
   groupSize: number;
   purchaseLimit: number;
   isUnlimited: boolean;
-  purchaseable: boolean; // Indicates if the ticket can be purchased
+  purchasable: boolean; // Indicates if the ticket can be purchased
+  type: string;
 }
 
 interface TicketCardProps {
@@ -46,7 +47,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
 
   return (
     <div
-      onClick={() => !isSoldOut&& ticket?.purchaseable && selectTicket()}
+      onClick={() => !isSoldOut&& ticket?.purchasable && selectTicket()}
       className={`relative  bg-white rounded-xl p-4 flex flex-col gap-3 transition-all duration-300 md:w-[20rem]
         ${
           isSelected
@@ -54,7 +55,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             : "border border-gray-200"
         }
         ${
-          isSoldOut|| !ticket.purchaseable
+          isSoldOut|| !ticket.purchasable
             ? "opacity-50 cursor-not-allowed"
             : "cursor-pointer hover:shadow-md"
         }`}
@@ -69,7 +70,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             </h3>
             {/* Right side: Controls or Sold Out text */}
             <div className="flex items-center h-full flex-shrink-0">
-              {isSelected && !isSoldOut&& ticket.purchaseable && (
+              {isSelected && !isSoldOut&& ticket.purchasable && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -102,13 +103,13 @@ const TicketCard: React.FC<TicketCardProps> = ({
                 </motion.div>
               )}
 
-              {isSoldOut|| !ticket.purchaseable && (
-                <span className="text-red-500 font-bold text-sm">{isSoldOut ? "Sold Out" : "Not Purchaseable"}</span>
+              {isSoldOut|| !ticket.purchasable && (
+                <span className="text-red-500 font-bold text-sm">{isSoldOut ? "Sold Out" : "Not purchasable"}</span>
               )}
             </div>
           </div>
           <span className="text-sm font-semibold text-primary mt-1 red-hat-display">
-            ₦{price.toLocaleString()}
+           {ticket.type==='paid'?`₦${price.toLocaleString()}`:'FREE'} 
           </span>
           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 w-full ">
             <span className="flex items-center gap-1">

@@ -3,21 +3,21 @@ export const Storage = {
         if (typeof itemValue === "object") {
             itemValue = JSON.stringify(itemValue);
         }
-        localStorage.setItem(itemKey, itemValue);
+        sessionStorage.setItem(itemKey, itemValue);
     },
 
     appendItem: (itemKey: string, itemValue: any) => {
-        let initialItemValue = localStorage.getItem(itemKey);
+        let initialItemValue = sessionStorage.getItem(itemKey);
         if (!initialItemValue) {
             initialItemValue = JSON.stringify([]);
-            localStorage.setItem(itemKey, initialItemValue);
+            sessionStorage.setItem(itemKey, initialItemValue);
         }
 
         try {
             initialItemValue = JSON.parse(initialItemValue);
             if (Array.isArray(initialItemValue)) {
                 initialItemValue.push(itemValue);
-                localStorage.setItem(itemKey, JSON.stringify(initialItemValue));
+                sessionStorage.setItem(itemKey, JSON.stringify(initialItemValue));
             }
         } catch (err) {
             return initialItemValue;
@@ -25,14 +25,14 @@ export const Storage = {
     },
 
     subtractItem: (itemKey: string, itemValue: any) => {
-        let initialItemValue = localStorage.getItem(itemKey);
+        let initialItemValue = sessionStorage.getItem(itemKey);
         if (!initialItemValue) return;
 
         try {
             initialItemValue = JSON.parse(initialItemValue);
             if (Array.isArray(initialItemValue)) {
                 const filteredValues = initialItemValue.filter((val) => val.tab !== itemValue.tab);
-                localStorage.setItem(itemKey, JSON.stringify(filteredValues || []));
+                sessionStorage.setItem(itemKey, JSON.stringify(filteredValues || []));
             }
         } catch (err) {
             return initialItemValue;
@@ -40,7 +40,7 @@ export const Storage = {
     },
 
     getItem: (itemKey: string) => {
-        const itemValue = localStorage.getItem(itemKey);
+        const itemValue = sessionStorage.getItem(itemKey);
         if (!itemValue) return;
 
         try {
@@ -51,10 +51,10 @@ export const Storage = {
     },
 
     removeItem: (itemKey: string) => {
-        localStorage.removeItem(itemKey);
+        sessionStorage.removeItem(itemKey);
     },
 
     clearItem: () => {
-        localStorage.clear();
+        sessionStorage.clear();
     },
 };

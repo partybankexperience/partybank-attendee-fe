@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, Ticket } from "lucide-react";
 import xtasyGroove from "../../assets/images/XtasyGroove.png";

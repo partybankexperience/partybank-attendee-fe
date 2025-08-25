@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 import logo from "../../assets/images/logo.svg";
 import footerLogo from "../../assets/images/landingpage/footerLogo.svg";
@@ -13,6 +12,8 @@ import trad from "../../assets/images/landingpage/trad.png";
 import event from "../../assets/images/landingpage/event.png";
 import effect from "../../assets/images/landingpage/effect.png";
 import spiral from "../../assets/images/landingpage/spiral.png";
+import DefaultButton from "../../components/buttons/DefaultButton";
+import { useNavigate } from "react-router";
 
 const PartyBankLanding = () => {
   const fadeInUp = {
@@ -56,7 +57,7 @@ const PartyBankLanding = () => {
       image: rekli,
     },
   ];
-
+const navigate=useNavigate()
   return (
     <div className="bg-[#F8F9F9]">
       {/* Header */}
@@ -111,12 +112,15 @@ const PartyBankLanding = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <button className="text-primary hover:text-red-600 font-medium transition-colors">
+            {/* <button className="text-primary hover:text-red-600 font-medium transition-colors">
               Create Account
-            </button>
-            <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-              Sign In
-            </button>
+            </button> */}
+            <DefaultButton onClick={() => navigate('/login')}>
+            Sign In
+            </DefaultButton>
+            {/* <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors" >
+              
+            </button> */}
           </motion.div>
         </nav>
       </header>
@@ -153,7 +157,7 @@ const PartyBankLanding = () => {
                 Where every ticket holds a celebration.
               </motion.p>
 
-              <motion.button
+              {/* <motion.button
                 className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
                hover:bg-red-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                 variants={fadeInUp}
@@ -161,7 +165,10 @@ const PartyBankLanding = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 Buy Tickets
-              </motion.button>
+              </motion.button> */}
+              <DefaultButton onClick={() => navigate('/search')} className="!px-8 !py-4 " >
+                Buy Tickets
+              </DefaultButton>
             </motion.div>
 
             {/* Features Badge */}
@@ -350,8 +357,22 @@ const PartyBankLanding = () => {
               <img src={event} alt="" className="w-full" />
             </div>
           </motion.div>
-
-          <motion.button
+            <motion.a
+            href="https://example.com"
+            className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
+                   hover:bg-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-600"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.4 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Create Event on PartyBank"
+            >
+            Create Event
+            </motion.a>
+          {/* <motion.button
             className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
              hover:bg-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl"
             initial={{ opacity: 0, y: 20 }}
@@ -361,7 +382,7 @@ const PartyBankLanding = () => {
             whileTap={{ scale: 0.95 }}
           >
             Create Event
-          </motion.button>
+          </motion.button> */}
         </div>
       </section>
 

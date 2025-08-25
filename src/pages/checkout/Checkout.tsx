@@ -14,43 +14,12 @@ import {
   formatTimeRange,
 } from "../../components/helpers/dateTimeHelpers";
 import { errorAlert } from "../../components/alerts/ToastService";
+import { useNavigate } from "react-router";
+import { formatTimer, usePaymentTimer } from "../../components/helpers/timer";
+import { useAuthStore } from "../../stores/useAuthStore";
+import { formatPrice } from "../../components/helpers/numberFormatHelpers";
 
-// interface CheckoutComponentType {
-//   onClose: () => void;
-// }
-
-// const CheckoutComponent: React.FC<CheckoutComponentType> = ({ onClose }) => {
 const Checkout: React.FC = () => {
-  // Timer state for checkout countdown
-  const [timeLeft, setTimeLeft] = useState<number>(15 * 60 + 37); // 15:37 in seconds
-  // const navigate = useNavigate();
-
-  // Ticket data
-
-  // Timer countdown effect
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Format timer display
-  interface FormatTimeFn {
-    (seconds: number): string;
-  }
-
-  const formatTime: FormatTimeFn = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const formatPrice = (price: number): string => {
-    return `₦${price.toLocaleString()}`;
-  };
-
   // Animation variants
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
@@ -60,9 +29,24 @@ const Checkout: React.FC = () => {
 
   const [isLoading, setisLoading] = useState(false);
   const { paymentLink, startCheckout } = useCheckoutStore();
-  const { selectedTicketId, quantity, eventDetail, ticket, getTotal } =
+  const { selectedTicketId, quantity, eventDetail, ticket, getTotal,reset } =
     useTicketStore();
-  const { reservationId } = useCheckoutStore();
+  const { reservationId,cancelCheckout } = useCheckoutStore();
+  const eventName = Storage.getItem("eventName");
+ const { checkoutStage } = useAuthStore();
+  const navigate=useNavigate()
+  // const redirect = Storage?.getItem("redirectPath") || null;
+    const [endTime, setEndTime] = useState<Date | null>(null);
+  const [timersInitialized, setTimersInitialized] = useState(false);
+    const timeLeft = usePaymentTimer(endTime, () => {
+      setEndTime(null);
+    });
+  
+    const startTimer = (durationInMinutes: number) => {
+      // Calculate the end time based on the input duration
+      const targetTime = new Date(new Date().getTime() + durationInMinutes * 60 * 1000);
+      setEndTime(targetTime);
+    };
   async function handleCheckout() {
     setisLoading(true);
     
@@ -75,21 +59,39 @@ const Checkout: React.FC = () => {
         return errorAlert("Error", "No reservation ID found. Please go back!");
       }
       await startCheckout(reservationId);
+      // paymentLink&& window.open(paymentLink, "_blank");
+      // Redirect in the same tab
+      if (paymentLink&&ticket.type==='paid') {
+        window.location.href = paymentLink; // opens in the same tab
+      } else if (ticket.type==='free') {
+        navigate("/confirmation");
+      } 
     } catch (error) {
       console.log(error);
+      navigate(`/event-details/${eventDetail?.slug}`)
     } finally {
       setisLoading(false);
     }
 
-    // paymentLink&& window.open(paymentLink, "_blank");
-    // Redirect in the same tab
-    if (paymentLink) {
-      window.location.href = paymentLink; // opens in the same tab
-    } else {
-      console.error("Payment link not available");
-    }
   }
-  const eventName = Storage.getItem("eventName");
+  useEffect(() => {
+    if( checkoutStage === 'checkout' && selectedTicketId) {
+      startTimer(10); // Start the timer with 10 minutes
+      setTimersInitialized(true);
+    }
+  }, [checkoutStage])
+  useEffect(() => {
+    if (!timersInitialized) return; // Prevent running before timers are set
+    if (timeLeft === 0&& endTime === null) {
+      // Cancel the checkout process
+      cancelCheckout()
+      // Remove the cart data from local storage
+      reset()
+      // Timer expired, redirect to the event details page
+      navigate(`/event-details/${eventName}`);
+
+    }
+  }, [timeLeft, eventName,timersInitialized,endTime]);
   useCancelOnLeave(eventName);
   return (
     <>
@@ -121,7 +123,7 @@ const Checkout: React.FC = () => {
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  Time left {formatTime(timeLeft)}
+                  Time left {formatTimer(timeLeft)}
                 </motion.div>
               </div>
             </motion.div>
@@ -210,7 +212,7 @@ const Checkout: React.FC = () => {
                       Total :
                     </span>
                     <span className="text-2xl font-bold text-primary">
-                      {formatPrice(getTotal())}
+                      {getTotal()}
                     </span>
                   </div>
                 </div>
@@ -222,18 +224,6 @@ const Checkout: React.FC = () => {
                 </p>
 
                 {/* Proceed Button */}
-                {/* <motion.button
-                      className="w-full bg-primary hover:bg-red-700 text-white font-bold
-                       py-4 px-6 rounded-xl text-lg transition-colors shadow-lg"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        navigate("/confirmation");
-                        console.log("Processing payment...", formData);
-                      }}
-                    >
-                      Proceed to Payment
-                    </motion.button> */}
                 <DefaultButton
                   isLoading={isLoading}
                   variant="primary"

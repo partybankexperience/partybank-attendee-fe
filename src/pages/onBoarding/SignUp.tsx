@@ -91,12 +91,13 @@ const [timersInitialized, setTimersInitialized] = useState(false);
       setUser(res)
       if(checkoutStage==='emailVerification'){
         // Storage.setItem("checkoutStage", "signUp");
-        setCheckoutStage('signUp')
-        if (redirect && checkoutStage==='emailVerification') {
+        // setCheckoutStage('signUp')
+        if (redirect) {
+          setCheckoutStage('checkout');
           Storage.removeItem("redirectPath");
           navigate(redirect);
         } 
-        }else navigate('/');
+        }else navigate('/search');
       // Storage.setItem("checkoutStage", "signUp");
       successAlert("Success",res.message)
       console.log(res, "Sign Up Response");
@@ -157,8 +158,7 @@ const [timersInitialized, setTimersInitialized] = useState(false);
       <div className="flex justify-between items-center">
               <p className="font-semibold">{selectedTicketName}</p>
               <p className="text-sm text-darkGrey">
-                {quantity} × {price?.toLocaleString()}
-              </p>
+{quantity} × {price ? price.toLocaleString() : "Free"}              </p>
             </div>
             {/* <span className="font-bold text-red">{ticket.price}</span> */}
             <p className="text-softRed text-[14px] text-left">

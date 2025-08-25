@@ -184,7 +184,7 @@ export const useCheckoutStore = create<CheckoutState>()(
 
       // ✅ Reservation pipeline
       createAndStoreReservation: async (eventId, ticketId, quantity, identity) => {
-        const idempotencyKey = generateIdempotencyKey(ticketId, quantity);
+        const idempotencyKey = generateIdempotencyKey(ticketId, Date.now());
         try {
           const res = await createReservation(eventId, ticketId, quantity, idempotencyKey, identity);
 

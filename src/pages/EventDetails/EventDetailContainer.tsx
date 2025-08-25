@@ -56,9 +56,6 @@ const EventDetails: React.FC = () => {
     return { ipHash:ip };
   }
   
-  const formatPrice = (price: number): string => {
-    return `₦${price.toLocaleString()}`;
-  };
 
   // Animation variants
   const fadeInUp = {
@@ -163,8 +160,8 @@ const EventDetails: React.FC = () => {
     } else {
       setHasPassed(now > start);
     }
-  }, []);
-  
+  }, [eventDetail]);
+  console.log(hasPassed,'hasPassed')
   if (loading) {
     return (
       <HomeLayout>
@@ -269,10 +266,10 @@ const EventDetails: React.FC = () => {
           transition={{ delay: 0.4, duration: 0.8 }}
         >
           <h3 className="text-[1.3rem] font-semibold text-[#231F20] mb-2 red-hat-display">
-           {!hasPassed?'View Tickets':'Get Tickets'} 
+           {hasPassed?'View Tickets':'Get Tickets'} 
           </h3>
           <p className="text-[#979595] text-[1rem]  mb-6 red-hat-display">
-           {!hasPassed?'Event has concluded':'Which ticket type are you going for?'} 
+           {hasPassed?'Event has concluded':'Which ticket type are you going for?'} 
           </p>
 
           <div className="space-y-4 mb-8 max-h-[50vh] overflow-auto min-w-full">
@@ -290,13 +287,13 @@ const EventDetails: React.FC = () => {
           </div>
 
           {/* Total and Purchase Button */}
-          {hasPassed && (
+          {!hasPassed && (
 
           <div className="border-t pt-6">
             <div className="flex justify-between items-center mb-6">
               <span className=" font-bold text-gray-900">Total:</span>
               <span className="text-[1.1rem] font-bold text-primary">
-                {formatPrice(getTotal())}
+                {getTotal()}
               </span>
             </div>
             <DefaultButton className="!w-full" onClick={() => handleNext()}>

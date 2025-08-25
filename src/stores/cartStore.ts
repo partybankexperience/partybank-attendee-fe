@@ -96,6 +96,7 @@
 // }));
 import { create } from "zustand";
 import { Storage } from "./InAppStorage";
+import { formatPrice } from "../components/helpers/numberFormatHelpers";
 
 interface TicketState {
   selectedTicketId: string | null;
@@ -107,7 +108,7 @@ interface TicketState {
   increaseQuantity: (limit?: number) => void;
   decreaseQuantity: () => void;
   reset: () => void;
-  getTotal: () => number;
+  getTotal: () =>  number | string;
   eventName: string | null;
   ticket:any|null
 }
@@ -189,8 +190,9 @@ export const useTicketStore = create<TicketState>((set, get) => {
 
     getTotal: () => {
       const state = get();
-      if (!state.selectedTicketId || !state.price) return 0;
-      return state.price * state.quantity;
+      if (state.ticket?.type == "free") return 'FREE'; // Handle free tickets
+      if (!state.selectedTicketId || !state.price) return formatPrice(0);
+      return formatPrice(state.price * state.quantity) ;
     },
   };
 });

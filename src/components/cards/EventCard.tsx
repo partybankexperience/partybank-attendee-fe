@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+// import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PiMapPinBold } from "react-icons/pi";
 import { formatDate, formatTimeRange } from "../helpers/dateTimeHelpers";
 import FallbackImage from "../common/FallbackImage";
 // import { getEventsBySlug } from '../../Containers/eventApi';
-import { Storage } from "../../stores/InAppStorage";
 // import { useEventStore } from '../../stores/useEventStore';
 import { IoCalendarOutline } from "react-icons/io5";
 import { getFallbackImage } from "../../config/fallbackImages";
@@ -18,19 +17,19 @@ const EventCard = ({
   startDate,
   startTime,
   endTime,
-  progress = 0,
-  ticketSold = 0,
-  totalTicket = 0,
-  // onEdit,
-  onDuplicate,
-  onDelete,
-  stage = "",
+  // progress = 0,
+  // ticketSold = 0,
+  // totalTicket = 0,
+  // // onEdit,
+  // onDuplicate,
+  // onDelete,
+  // stage = "",
   slug = "1",
   id = "",
-  timingStatus = "",
+  // timingStatus = "",
   bannerImage = getFallbackImage("default"),
   price = "",
-  date = "",
+  // date = "",
   image = "",
 }: {
   name?: string;
@@ -53,8 +52,8 @@ const EventCard = ({
   date?: string;
   image?: string;
 }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // const [dropdownOpen, setDropdownOpen] = useState(false);
+  // const dropdownRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   // const { setStage, prefillEventData, mapBackendStepToFrontend } = useEventStore();
@@ -134,21 +133,21 @@ const EventCard = ({
   const timeDisplay = startTime && formatTimeRange(startTime, endTime);
 
   // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (event: MouseEvent) => {
+  //     if (
+  //       dropdownRef.current &&
+  //       !dropdownRef.current.contains(event.target as Node)
+  //     ) {
+  //       setDropdownOpen(false);
+  //     }
+  //   };
 
-    document.addEventListener("mousedown", handleClickOutside, true);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside, true);
-    };
-  }, []);
+  //   document.addEventListener("mousedown", handleClickOutside, true);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside, true);
+  //   };
+  // }, []);
 
   const cardItems = [
     {

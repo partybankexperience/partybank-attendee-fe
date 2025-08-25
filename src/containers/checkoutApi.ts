@@ -4,6 +4,7 @@ const initiateCheckout = async (reservationId: any,idempotencyKey:string): Promi
     const response = await apiCall({
       name: 'initiateCheckout',
       data: { reservationId,idempotencyKey},
+      alert:true
     });
     return response;
   };

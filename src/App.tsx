@@ -9,11 +9,11 @@ import { useEffect } from "react";
 import PrivateRoute from "./utils/privateRoute";
 import EventDetails from "./pages/EventDetails/EventDetailContainer";
 import Confirmation from "./pages/Confirmation/TicketConfirmation";
-import Profile from "./pages/Profile/ProfileLayout";
 import LandingPage from "./pages/LandingPage/LandingPage";
 import VerificationRoute from "./utils/verificationRoute";
 import ForgotPassword from "./pages/onBoarding/forgotPassword/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/profile/ProfileLayout";
 
 function App() {
   const location = useLocation();
@@ -26,7 +26,7 @@ function App() {
     <Routes>
 
       <Route
-        path="/home"
+        path="/search"
         element={<Home />}
       />
       <Route

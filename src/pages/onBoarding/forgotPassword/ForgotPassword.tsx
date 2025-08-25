@@ -127,8 +127,7 @@ const { checkoutStage,email } = useAuthStore();
                   <div className="flex justify-between items-center">
                     <p className="font-semibold">{selectedTicketName}</p>
                     <p className="text-sm text-darkGrey">
-                      {quantity} × {price?.toLocaleString()}
-                    </p>
+      {quantity} × {price ? price.toLocaleString() : "Free"}                    </p>
                   </div>
                   {/* <span className="font-bold text-red">{ticket.price}</span> */}
                   <p className="text-softRed text-[14px] text-left">
