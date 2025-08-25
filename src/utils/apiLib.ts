@@ -106,4 +106,22 @@ export const endPoints: endPointlistTypes = {
     headers,
     auth: true,
   },
+  getReservation:{
+    url: '/reservations',
+    method: 'GET',
+    headers,
+    // auth: true,
+  },
+  createReservation: {
+    url: '/reservations',
+    method: 'POST',
+    headers,
+    // auth: true,
+  },
+  cancelReservation: {
+    url: '/reservations',
+    method: 'PUT',
+    headers,
+    // auth: true,
+  },
 };

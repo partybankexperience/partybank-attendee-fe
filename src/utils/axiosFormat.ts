@@ -132,3 +132,13 @@ export const apiCall = ({
       });
   });
 };
+// ✅ Reusable pipeline runner
+export async function runPipeline<T>(
+  steps: ((input: T) => Promise<T>)[]
+): Promise<T> {
+  let result: T | undefined = undefined;
+  for (const step of steps) {
+    result = await step(result as T); // pass result forward
+  }
+  return result as T;
+}

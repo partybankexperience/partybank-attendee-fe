@@ -29,6 +29,9 @@ export type endPointlistTypes = {
   forgotPassword:endpointTypes;
   forgotPasswordOTP:endpointTypes;
   resetPassword:endpointTypes;
+  createReservation:endpointTypes;
+  getReservation:endpointTypes;
+  cancelReservation:endpointTypes;
 };
 
 export type urlPropTypes = {

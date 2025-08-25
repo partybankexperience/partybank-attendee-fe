@@ -9,15 +9,17 @@ import HomeLayout from "../../components/layouts/HomeLayout";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import { useTicketStore } from "../../stores/cartStore";
 import { errorAlert } from "../../components/alerts/ToastService";
-import { getEventBySlug } from "../../containers/eventsApi";
+import { checkticketAvailability, getEventBySlug } from "../../containers/eventsApi";
 import { EventDetailsSkeleton } from "../../components/common/LoadingSkeleton";
 import {
   formatDate,
   formatTimeRange,
 } from "../../components/helpers/dateTimeHelpers";
 import { useAuthStore } from "../../stores/useAuthStore";
+import { runPipeline } from "../../utils/axiosFormat";
+import { useCheckoutStore } from "../../stores/checkoutStore";
 // import { useCheckoutStore } from "../../stores/checkoutStore";
-
+// import { createHash } from "crypto"; // Node.js; if browser, use SubtleCrypto
 const EventDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { setCheckoutStage } = useAuthStore();
@@ -31,12 +33,29 @@ const EventDetails: React.FC = () => {
     decreaseQuantity,
     getTotal,
   } = useTicketStore();
+  const {createAndStoreReservation}= useCheckoutStore()
   const [eventDetail, seteventDetail] = useState<any>("");
 
   // const [isOpen, setIsOpen] = useState<boolean>(false)
 
   const navigate = useNavigate();
+  
 
+  async function getIdentity(user?: { id?: string }) {
+    if (user?.id) {
+      return { userId: user.id };
+    }
+  
+    // fallback to ipHash
+    const { ip } = await fetch("https://api64.ipify.org?format=json")
+      .then(r => r.json());
+  
+    // hash the IP (MD5 as in your example, but could be SHA256)
+    // const ipHash = createHash("md5").update(ip).digest("hex");
+  
+    return { ipHash:ip };
+  }
+  
   const formatPrice = (price: number): string => {
     return `₦${price.toLocaleString()}`;
   };
@@ -56,21 +75,68 @@ const EventDetails: React.FC = () => {
     },
   };
 
-  function handleNext() {
-    if (!selectedTicketId){
+  // function handleNext() {
+  //   if (!selectedTicketId){
+  //     errorAlert("Error", "Please select a ticket first!");
+  //   return}
+  //   const user = Storage.getItem("user");
+  //   console.log(user, "user in event details");
+  //   // startCheckout(selectedTicketId,quantity)
+  //   if (!user) {
+  //     Storage.setItem("redirectPath", "/checkout");
+  //     setCheckoutStage("eventDetails");
+  //     navigate("/login");
+  //     // Storage.setItem("checkoutStage", "eventDetails");
+  //   } else navigate("/checkout");
+  // }
+  
+  async function handleNext() {
+    if (!selectedTicketId) {
       errorAlert("Error", "Please select a ticket first!");
-    return}
+      return;
+    }
+  
     const user = Storage.getItem("user");
-    console.log(user, "user in event details");
-    // startCheckout(selectedTicketId,quantity)
-    if (!user) {
-      Storage.setItem("redirectPath", "/checkout");
-      setCheckoutStage("eventDetails");
-      navigate("/login");
-      // Storage.setItem("checkoutStage", "eventDetails");
-    } else navigate("/checkout");
+    // const identity = user?.id ?? (await fetch("https://api64.ipify.org?format=json").then(r => r.json()).then(d => d.ip));
+    const identity = await getIdentity(user);
+    try {
+      await runPipeline([
+        // Step 1: check availability
+        async () => {
+          const res = await checkticketAvailability(selectedTicketId, quantity);
+          if (!res?.available) errorAlert("Error", res.message || "Ticket is not available");;
+          return res;
+        },
+  
+        // Step 2: create reservation
+        async () => {
+          const reservation = await createAndStoreReservation(
+            eventDetail.id, // from props/context
+            selectedTicketId,
+            quantity,
+            identity
+          );
+          return reservation;
+        },
+  
+        // Step 3: navigate
+        async () => {
+          if (!user) {
+            Storage.setItem("redirectPath", "/checkout");
+            setCheckoutStage("eventDetails");
+            navigate("/login");
+          } else {
+            navigate("/checkout");
+          }
+          return null;
+        },
+      ]);
+    } catch (err) {
+      console.error("Pipeline failed:", err);
+      errorAlert("Error", (err as Error).message || "Something went wrong");
+    }
   }
-
+  
   async function getEventDetail() {
     setLoading(true);
     try {
@@ -85,6 +151,20 @@ const EventDetails: React.FC = () => {
   useEffect(() => {
     getEventDetail();
   }, []);
+  const [hasPassed, setHasPassed] = useState(false);
+
+  useEffect(() => {
+    const now = new Date();
+    const start = new Date(eventDetail.startDate);
+    const end = eventDetail.endDate ? new Date(eventDetail.endDate) : undefined;
+
+    if (end) {
+      setHasPassed(now > end);
+    } else {
+      setHasPassed(now > start);
+    }
+  }, []);
+  
   if (loading) {
     return (
       <HomeLayout>
@@ -103,7 +183,7 @@ const EventDetails: React.FC = () => {
       </HomeLayout>
     );
   }
-console.log(slug as string,'slug')
+ 
 
   return (
     <HomeLayout>
@@ -189,10 +269,10 @@ console.log(slug as string,'slug')
           transition={{ delay: 0.4, duration: 0.8 }}
         >
           <h3 className="text-[1.3rem] font-semibold text-[#231F20] mb-2 red-hat-display">
-            Get Tickets
+           {!hasPassed?'View Tickets':'Get Tickets'} 
           </h3>
           <p className="text-[#979595] text-[1rem]  mb-6 red-hat-display">
-            Which ticket type are you going for?
+           {!hasPassed?'Event has concluded':'Which ticket type are you going for?'} 
           </p>
 
           <div className="space-y-4 mb-8 max-h-[50vh] overflow-auto min-w-full">
@@ -210,6 +290,8 @@ console.log(slug as string,'slug')
           </div>
 
           {/* Total and Purchase Button */}
+          {hasPassed && (
+
           <div className="border-t pt-6">
             <div className="flex justify-between items-center mb-6">
               <span className=" font-bold text-gray-900">Total:</span>
@@ -221,6 +303,7 @@ console.log(slug as string,'slug')
               Next
             </DefaultButton>
           </div>
+          )}
         </motion.div>
       </div>
     </HomeLayout>

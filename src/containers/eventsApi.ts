@@ -18,7 +18,7 @@ const getEventBySlug=async (slug:string): Promise<any> => {
     });
     return response;
   };
-const checkticketAvailability=async (ticketId:string,quantity:string): Promise<any> => {
+const checkticketAvailability=async (ticketId:string,quantity:any): Promise<any> => {
     const response = await apiCall({
       name: 'checkTicketAvailability',
       urlExtra: `/${ticketId}/check-availability`,
