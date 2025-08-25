@@ -4,11 +4,13 @@ import Checkout from "./pages/checkout/Checkout";
 import Login from "./pages/onBoarding/Login";
 import SignUp from "./pages/onBoarding/SignUp";
 import EmailVerification from "./pages/onBoarding/EmailVerification";
-import Profile from "./pages/profile";
+// import Profile from "./pages/profile";
 import { useEffect } from "react";
 import PrivateRoute from "./utils/privateRoute";
 import EventDetails from "./pages/EventDetails/EventDetailContainer";
 import Confirmation from "./pages/Confirmation/TicketConfirmation";
+import Profile from "./pages/Profile/ProfileLayout";
+import LandingPage from "./pages/LandingPage/LandingPage";
 import VerificationRoute from "./utils/verificationRoute";
 import ForgotPassword from "./pages/onBoarding/forgotPassword/ForgotPassword";
 import NotFound from "./pages/NotFound";
@@ -22,9 +24,22 @@ function App() {
   }, [location.pathname]);
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
+
+      <Route
+        path="/home"
+        element={<Home />}
+      />
+      <Route
+        path="/"
+        element={<LandingPage />}
+      />
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
       <Route path="/forgot-password" element={<ForgotPassword />} />
+
       <Route
         path="/signup"
         element={

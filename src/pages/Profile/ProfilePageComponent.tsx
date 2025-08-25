@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Edit3, ArrowLeft } from "lucide-react";
-import ProfilePicture from "./Profile_Picture";
+import ProfilePicture from "../Profile/ProfilePicture";
 
 const ProfileComponent = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +13,7 @@ const ProfileComponent = () => {
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isEditing, setIsEditing] = useState(false);
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -41,6 +42,11 @@ const ProfileComponent = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleSave = () => {
+    // Call API here with formData
+    setIsEditing(false);
   };
 
   const containerVariants = {
@@ -76,41 +82,52 @@ const ProfileComponent = () => {
           <ArrowLeft size={24} />
         </button>
       )}
-      <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+      <h1 className="text-2xl font-semibold text-textBlack">My Profile</h1>
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="flex items-center gap-2 px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+        className="flex items-center ga-2 px-4 py-2 border border-primary text-primary rounded-lg hover:bg-red-50 transition-colors"
+         onClick={() => {
+            if (isEditing) {
+              handleSave();
+            } else {
+              setIsEditing(true);
+            }
+          }}
       >
         <Edit3 size={16} />
-        <span className="font-medium">Edit</span>
+        <span
+          className="font-medium"
+        >
+          {isEditing ? "Save" : "Edit"}
+        </span>
       </motion.button>
     </motion.header>
   );
 
-//   const ProfilePicture = () => (
-//     <motion.div variants={itemVariants} className="flex justify-center mb-8">
-//       <div className="relative">
-//         <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden">
-//           <img
-//             src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face"
-//             alt="Profile"
-//             className="w-full h-full object-cover"
-//           />
-//         </div>
-//         <label htmlFor="profile_pics">
-//         <input type="file" name="profile_pics" />
-//         <motion.button
-//           whileHover={{ scale: 1.1 }}
-//           whileTap={{ scale: 0.9 }}
-//           className="absolute -bottom-1 -right-1 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
-//         >
-//           <Camera size={14} className="text-white" />
-//         </motion.button>
-//         </label>
-//       </div>
-//     </motion.div>
-//   );
+  //   const ProfilePicture = () => (
+  //     <motion.div variants={itemVariants} className="flex justify-center mb-8">
+  //       <div className="relative">
+  //         <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden">
+  //           <img
+  //             src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face"
+  //             alt="Profile"
+  //             className="w-full h-full object-cover"
+  //           />
+  //         </div>
+  //         <label htmlFor="profile_pics">
+  //         <input type="file" name="profile_pics" />
+  //         <motion.button
+  //           whileHover={{ scale: 1.1 }}
+  //           whileTap={{ scale: 0.9 }}
+  //           className="absolute -bottom-1 -right-1 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+  //         >
+  //           <Camera size={14} className="text-white" />
+  //         </motion.button>
+  //         </label>
+  //       </div>
+  //     </motion.div>
+  //   );
 
   const FormField = ({
     label,
@@ -120,7 +137,7 @@ const ProfileComponent = () => {
     placeholder,
   }: FormData) => (
     <motion.div variants={itemVariants} className="mb-6">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-textBlack mb-2">
         {label}
       </label>
       <input
@@ -129,9 +146,9 @@ const ProfileComponent = () => {
         value={value}
         onChange={handleInputChange}
         placeholder={placeholder}
-        disabled
-        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2
-         focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+        disabled={!isEditing}
+        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 placeholder:text-[#A9ABAE]
+         focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-gray-50 text-[#A9ABAE]"
       />
     </motion.div>
   );
@@ -154,13 +171,13 @@ const ProfileComponent = () => {
               checked={formData.gender === gender}
               onChange={handleInputChange}
               className="sr-only"
-              disabled
+              disabled={!isEditing}
             />
             <div
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all duration-200 ${
                 formData.gender === gender
-                  ? "border-red-500 bg-red-500"
-                  : "border-gray-300 group-hover:border-red-300"
+                  ? "border-gray-300 bg-gray-300"
+                  : "border-gray-300 group-hover:border-gray-300"
               }`}
             >
               {formData.gender === gender && (
@@ -188,7 +205,7 @@ const ProfileComponent = () => {
         >
           <ProfileHeader />
           {/* <ProfilePicture /> */}
-          <ProfilePicture/>
+          <ProfilePicture />
 
           <motion.form className="max-w-2xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
