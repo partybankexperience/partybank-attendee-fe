@@ -43,6 +43,24 @@ export const endPoints: endPointlistTypes = {
     headers,
     auth: false,
   },
+  forgotPassword: {
+    url: '/reset-password/initiate',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
+  forgotPasswordOTP: {
+    url: '/reset-password/verify',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
+  resetPassword: {
+    url: '/reset-password/submit',
+    method: 'POST',
+    headers,
+    auth: false,
+  },
   emailExists:{
     url: '/auth/check-email',
     method: 'POST',
@@ -74,7 +92,7 @@ export const endPoints: endPointlistTypes = {
     url: '/checkout/initiate',
     method: 'POST',
     headers,
-    auth: false,
+    auth: true,
   },
  cancelCheckout: {
     url: '/checkout/cancel',
@@ -87,5 +105,23 @@ export const endPoints: endPointlistTypes = {
     method: 'GET',
     headers,
     auth: true,
+  },
+  getReservation:{
+    url: '/reservations',
+    method: 'GET',
+    headers,
+    // auth: true,
+  },
+  createReservation: {
+    url: '/reservations',
+    method: 'POST',
+    headers,
+    // auth: true,
+  },
+  cancelReservation: {
+    url: '/reservations',
+    method: 'PUT',
+    headers,
+    // auth: true,
   },
 };

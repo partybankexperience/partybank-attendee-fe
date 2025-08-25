@@ -12,7 +12,8 @@ import Confirmation from "./pages/Confirmation/TicketConfirmation";
 import Profile from "./pages/Profile/ProfileLayout";
 import LandingPage from "./pages/LandingPage/LandingPage";
 import VerificationRoute from "./utils/verificationRoute";
-
+import ForgotPassword from "./pages/onBoarding/forgotPassword/ForgotPassword";
+import NotFound from "./pages/NotFound";
 
 function App() {
   const location = useLocation();
@@ -23,6 +24,7 @@ function App() {
   }, [location.pathname]);
   return (
     <Routes>
+
       <Route
         path="/home"
         element={<Home />}
@@ -35,46 +37,39 @@ function App() {
         path="/login"
         element={<Login />}
       />
+
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+
       <Route
         path="/signup"
         element={
-        <VerificationRoute>
-<SignUp />
-        </VerificationRoute>
+          <VerificationRoute>
+            <SignUp />
+          </VerificationRoute>
         }
       />
+      <Route path="/email-verification" element={<EmailVerification />} />
       <Route
-        path="/email-verification"
-        element={<EmailVerification />}
-      />
-      <Route
-        path="/checkout/"
+        path="/checkout"
         element={
           <PrivateRoute>
             <Checkout />
           </PrivateRoute>
-        } 
+        }
       />
-      {/* <Route
-        path="/event-details/"
-        element={<EventDetails />} 
-      /> */}
-      <Route
-        path="/event-details/:slug"
-        element={<EventDetails />} 
-      />
-      <Route
-        path="/confirmation"
-        element={<Confirmation />} 
-      />
+      <Route path="/event-details/:slug" element={<EventDetails />} />
+      <Route path="/confirmation" element={<Confirmation />} />
       <Route
         path="/profile"
-        element={<Profile />} 
+        element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        }
       />
-      <Route
-        path="/checkout"
-        element={<Checkout />} 
-      />
+
+      {/* Catch-all route */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

@@ -1,17 +1,18 @@
 import { apiCall } from "../utils/axiosFormat";
 
-const initiateCheckout = async (ticketId: string,quantity:any,idempotencyKey:string): Promise<any> => {
+const initiateCheckout = async (reservationId: any,idempotencyKey:string): Promise<any> => {
     const response = await apiCall({
       name: 'initiateCheckout',
-      data: { ticketId,quantity,idempotencyKey},
+      data: { reservationId,idempotencyKey},
     });
     return response;
   };
 
-  const checkoutStatus = async (checkoutId: string): Promise<any> => {
+  const checkoutStatus = async (reservationId: any,holdToken:any): Promise<any> => {
     const response = await apiCall({
       name: 'checkoutStatus',
-      urlExtra: `/${checkoutId}`,
+      urlExtra: `/${reservationId}/status`,
+      params: { holdToken },
       alert: false,
     });
     return response;
@@ -24,4 +25,30 @@ const initiateCheckout = async (ticketId: string,quantity:any,idempotencyKey:str
     });
     return response;
   }
-export { initiateCheckout, checkoutStatus,cancelCheckout };
+  const getReservation = async (reservationId: string,holdToken:any): Promise<any> => {
+    const response = await apiCall({
+      name: 'getReservation',   
+      urlExtra: `/${reservationId}`,
+      params: { holdToken },
+      alert: false,
+    });
+    return response;
+  }
+  const createReservation = async (eventId:any,ticketId:any,quantity:any,idempotencyKey:any,identity:any): Promise<any> => {
+    const response = await apiCall({
+      name: 'createReservation',   
+      data: { eventId,ticketId,quantity,ttlMinutes:30 ,idempotencyKey,identity },
+      alert: false,
+    });
+    return response;
+  }
+  const cancelReservation = async (reservationId:any,holdToken:any,): Promise<any> => {
+    const response = await apiCall({
+      name: 'cancelReservation',   
+      urlExtra: `/${reservationId}`,
+      data: { holdToken },
+      alert: false,
+    });
+    return response;
+  }
+export { initiateCheckout, checkoutStatus,cancelCheckout,createReservation, getReservation,cancelReservation };

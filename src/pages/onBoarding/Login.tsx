@@ -3,13 +3,14 @@ import LoginLayout from "../../components/layouts/LoginLayout";
 import { useLocation, useNavigate } from "react-router";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import DefaultInput from "../../components/inputs/DefaultInput";
-import { emailExists, initiateOtp, LoginUser } from "../../containers/onBoardingApi";
+import { emailExists, forgotPassword, initiateOtp, LoginUser } from "../../containers/onBoardingApi";
 import { Storage } from "../../stores/InAppStorage";
 import { errorAlert } from "../../components/alerts/ToastService";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useTicketStore } from "../../stores/cartStore";
 import { useCheckoutStore } from "../../stores/checkoutStore";
 import { StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
+import { FaSpinner } from "react-icons/fa";
 
 const Login = () => {
   const [email, setemail] = useState("");
@@ -65,7 +66,6 @@ const Login = () => {
         }
       };
     }, []);
-  console.log(checkoutStage, "Checkout Stage");
     const redirect = Storage?.getItem("redirectPath") || null;
   
     const checkIfEmailExists = async (e: React.FormEvent) => {
@@ -81,6 +81,7 @@ const Login = () => {
         try {
           const res = await emailExists(email);
           setemailExist(res.exists);
+          console.log("emailExist2", emailExist);
       
           if (!res.exists) {
             // Send OTP
@@ -95,13 +96,8 @@ const Login = () => {
       
             // Prepare countdown value
             setCountdown(10);
-          }
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setisLoading(false);
-      
-          // 🔑 Start countdown *only after loading ends and OTP was sent*
+            // 🔑 Start countdown *only after loading ends and OTP was sent*
+          console.log("emailExist", emailExist);
           if (!emailExist) {
             timerRef.current = setInterval(() => {
               setCountdown((prev) => {
@@ -114,6 +110,13 @@ const Login = () => {
               });
             }, 1000);
           }
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setisLoading(false);
+      
+          
         }
       };
       
@@ -138,8 +141,9 @@ const Login = () => {
         setUser(res);
         if(checkoutStage==='eventDetails'){
         // Storage.setItem("checkoutStage", "signUp");
-        setCheckoutStage('signUp');
+        setCheckoutStage('checkout');
         if (redirect && checkoutStage==='eventDetails') {
+            console.log("Redirecting to:", redirect);
           Storage.removeItem("redirectPath");
           navigate(redirect);
         } 
@@ -178,7 +182,21 @@ const Login = () => {
     
         }
       }, [timeLeft, eventName,timersInitialized,endTime]);
-
+      const [loading, setIsLoading] = useState(false)
+      const triggerOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        // if (!email) return setEmailError(true);
+        setEmail(email);
+        try {
+          setIsLoading(true);
+          await forgotPassword(email);
+          navigate("/forgot-password")
+        } catch (error) {
+          console.log(error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
       return (
     <LoginLayout>
       <form
@@ -239,14 +257,22 @@ const Login = () => {
                   setExternalError={setPasswordError}
                   classname="!mb-0"
                 />
-                <div className="text-right m-0">
-                  <a
-                    className="text-[14px] text-red cursor-pointer hover:underline"
-                    onClick={() => navigate("/forgot-password")}
-                  >
-                    Forgot password?
-                  </a>
-                </div>
+                <div className="text-right m-0 flex items-center justify-end gap-2">
+  <a
+    className={`text-[14px] text-red cursor-pointer hover:underline ${
+      loading ? "pointer-events-none opacity-60" : ""
+    }`}
+    onClick={(e) => {
+      if (!loading) triggerOtp(e);
+    }}
+  >
+    Forgot password?
+  </a>
+
+  {loading && (
+    <FaSpinner className="w-4 h-4 animate-spin text-red" />
+  )}
+</div>
               </div>
             ) : !isLoading && (
               <div className="text-center text-red text-[14px] animate-fadeIn">

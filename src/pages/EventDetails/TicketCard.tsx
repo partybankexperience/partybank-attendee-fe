@@ -10,6 +10,7 @@ interface Ticket {
   groupSize: number;
   purchaseLimit: number;
   isUnlimited: boolean;
+  purchaseable: boolean; // Indicates if the ticket can be purchased
 }
 
 interface TicketCardProps {
@@ -36,7 +37,8 @@ const TicketCard: React.FC<TicketCardProps> = ({
     perks,
     groupSize,
     purchaseLimit,
-    isUnlimited,
+    // isUnlimited,
+    
   } = ticket;
 
   // A simple utility to prevent the scrollbar from showing if not needed
@@ -44,7 +46,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
 
   return (
     <div
-      onClick={() => !isSoldOut && selectTicket()}
+      onClick={() => !isSoldOut&& ticket?.purchaseable && selectTicket()}
       className={`relative  bg-white rounded-xl p-4 flex flex-col gap-3 transition-all duration-300 md:w-[20rem]
         ${
           isSelected
@@ -52,7 +54,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             : "border border-gray-200"
         }
         ${
-          isSoldOut
+          isSoldOut|| !ticket.purchaseable
             ? "opacity-50 cursor-not-allowed"
             : "cursor-pointer hover:shadow-md"
         }`}
@@ -67,7 +69,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             </h3>
             {/* Right side: Controls or Sold Out text */}
             <div className="flex items-center h-full flex-shrink-0">
-              {isSelected && !isSoldOut && (
+              {isSelected && !isSoldOut&& ticket.purchaseable && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -100,8 +102,8 @@ const TicketCard: React.FC<TicketCardProps> = ({
                 </motion.div>
               )}
 
-              {isSoldOut && (
-                <span className="text-red-500 font-bold text-sm">Sold Out</span>
+              {isSoldOut|| !ticket.purchaseable && (
+                <span className="text-red-500 font-bold text-sm">{isSoldOut ? "Sold Out" : "Not Purchaseable"}</span>
               )}
             </div>
           </div>
