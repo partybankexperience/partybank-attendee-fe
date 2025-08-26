@@ -8,9 +8,9 @@ import { Storage } from "../../stores/InAppStorage";
 import { errorAlert } from "../../components/alerts/ToastService";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { useTicketStore } from "../../stores/cartStore";
-import { useCheckoutStore } from "../../stores/checkoutStore";
 import { StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
 import { FaSpinner } from "react-icons/fa";
+import { useCheckoutLeaveGuards } from "../checkout/CancelCheckout";
 
 const Login = () => {
   const [email, setemail] = useState("");
@@ -31,9 +31,8 @@ const Login = () => {
   const message = queryParams.get("message");
   const state = queryParams.get("state");
   const { setUser,checkoutStage,setCheckoutStage,setEmail, markOtpSent } = useAuthStore();
-  const { selectedTicketId, quantity,selectedTicketName,price,reset } = useTicketStore();
+  const { selectedTicketId, quantity,selectedTicketName,price } = useTicketStore();
    const [endTime, setEndTime] = useState<Date | null>(null);
-  const { cancelCheckout } = useCheckoutStore();
   const [timersInitialized, setTimersInitialized] = useState(false);
     const eventName=Storage.getItem('eventName')
     const timeLeft = usePaymentTimer(endTime, () => {
@@ -174,11 +173,12 @@ const Login = () => {
         if (!timersInitialized) return; // Prevent running before timers are set
         if (timeLeft === 0&& endTime === null) {
           // Cancel the checkout process
-          cancelCheckout()
+        //   cancelCheckout()
+          useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
           // Remove the cart data from local storage
-          reset()
-          // Timer expired, redirect to the event details page
-          navigate(`/event-details/${eventName}`);
+        //   reset()
+        //   // Timer expired, redirect to the event details page
+        //   navigate(`/event-details/${eventName}`);
     
         }
       }, [timeLeft, eventName,timersInitialized,endTime]);

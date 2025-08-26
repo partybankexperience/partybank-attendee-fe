@@ -119,7 +119,7 @@ export const endPoints: endPointlistTypes = {
     // auth: true,
   },
   cancelReservation: {
-    url: '/reservations',
+    url: '/reservations/cancel',
     method: 'PUT',
     headers,
     // auth: true,

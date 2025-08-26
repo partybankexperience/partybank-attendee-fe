@@ -10,7 +10,7 @@ import { successAlert } from "../../components/alerts/ToastService";
 import { useTicketStore } from "../../stores/cartStore";
 import { Storage } from "../../stores/InAppStorage";
 import { StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
-import { useCheckoutStore } from "../../stores/checkoutStore";
+import { useCheckoutLeaveGuards } from "../checkout/CancelCheckout";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -33,10 +33,9 @@ const SignUp = () => {
   const { setUser,setCheckoutStage ,checkoutStage,clearAuth } = useAuthStore();
   const location = useLocation();
   const emailFromLocation = location?.state?.email || "";
-  const { selectedTicketId, quantity, selectedTicketName,price,reset } = useTicketStore();
+  const { selectedTicketId, quantity, selectedTicketName,price } = useTicketStore();
   const redirect = Storage?.getItem("redirectPath") || null;
   const [endTime, setEndTime] = useState<Date | null>(null);
-const { cancelCheckout } = useCheckoutStore();
 const [timersInitialized, setTimersInitialized] = useState(false);
   const eventName=Storage.getItem('eventName')
   const timeLeft = usePaymentTimer(endTime, () => {
@@ -137,11 +136,12 @@ const [timersInitialized, setTimersInitialized] = useState(false);
       if (!timersInitialized) return; // Prevent running before timers are set
       if (timeLeft === 0&& endTime === null) {
         // Cancel the checkout process
-        cancelCheckout()
-        // Remove the cart data from local storage
-        reset()
-        // Timer expired, redirect to the event details page
-        navigate(`/event-details/${eventName}`);
+        useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+        // cancelCheckout()
+        // // Remove the cart data from local storage
+        // reset()
+        // // Timer expired, redirect to the event details page
+        // navigate(`/event-details/${eventName}`);
   
       }
     }, [timeLeft, eventName,timersInitialized,endTime]);

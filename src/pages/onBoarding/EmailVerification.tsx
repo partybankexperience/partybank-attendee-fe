@@ -8,8 +8,8 @@ import { Storage } from "../../stores/InAppStorage";
 import { useNavigate } from "react-router";
 import maskEmail from "../../components/helpers/maskedEmail";
 import { useTicketStore } from "../../stores/cartStore";
-import { useCheckoutStore } from "../../stores/checkoutStore";
 import { formatTimer, StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
+import { useCheckoutLeaveGuards } from "../checkout/CancelCheckout";
 
 const EmailVerification = () => {
   const [otp, setOtp] = useState("");
@@ -19,14 +19,13 @@ const EmailVerification = () => {
   const navigate=useNavigate()
   // const location=useLocation()
   // const email = location?.state?.email || "";
-  const { selectedTicketId, quantity, selectedTicketName,price ,reset} = useTicketStore();
+  const { selectedTicketId, quantity, selectedTicketName,price } = useTicketStore();
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [otpEndTime, setOtpEndTime] = useState<Date | null>(null);
   const [timersInitialized, setTimersInitialized] = useState(false);
   const eventName=Storage.getItem('eventName')
   const checkoutStage = Storage.getItem("checkoutStage") || null;
   const { setCheckoutStage,setVerificationToken } = useAuthStore();
-  const { cancelCheckout } = useCheckoutStore();
   const timeLeft = usePaymentTimer(endTime, () => {
       setEndTime(null);
     });
@@ -93,11 +92,12 @@ const EmailVerification = () => {
     if (!timersInitialized) return; // Prevent running before timers are set
     if (timeLeft === 0&& endTime === null) {
       // Cancel the checkout process
-      cancelCheckout()
-      // Remove the cart data from local storage
-      reset()
-      // Timer expired, redirect to the event details page
-      navigate(`/event-details/${eventName}`);
+      // cancelCheckout()
+      useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+      // // Remove the cart data from local storage
+      // reset()
+      // // Timer expired, redirect to the event details page
+      // navigate(`/event-details/${eventName}`);
 
     }
   }, [timeLeft, eventName,timersInitialized,endTime]);

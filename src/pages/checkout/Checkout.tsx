@@ -7,7 +7,7 @@ import HomeLayout from "../../components/layouts/HomeLayout";
 import { useCheckoutStore } from "../../stores/checkoutStore";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import { useTicketStore } from "../../stores/cartStore";
-import useCancelOnLeave from "./CancelCheckout";
+import { useCheckoutLeaveGuards } from "./CancelCheckout";
 import { Storage } from "../../stores/InAppStorage";
 import {
   formatDate,
@@ -29,9 +29,9 @@ const Checkout: React.FC = () => {
 
   const [isLoading, setisLoading] = useState(false);
   const { paymentLink, startCheckout } = useCheckoutStore();
-  const { selectedTicketId, quantity, eventDetail, ticket, getTotal,reset } =
+  const { selectedTicketId, quantity, eventDetail, ticket, getTotal} =
     useTicketStore();
-  const { reservationId,cancelCheckout } = useCheckoutStore();
+  const { reservationId } = useCheckoutStore();
   const eventName = Storage.getItem("eventName");
  const { checkoutStage } = useAuthStore();
   const navigate=useNavigate()
@@ -52,28 +52,33 @@ const Checkout: React.FC = () => {
     
     try {
       if (!selectedTicketId) {
+        navigate(`/event-details/${eventName}`);
+errorAlert("Error", "No ticket selected. Please go back!");
         console.error("No ticket selected");
         return;
       }
       if (!reservationId) {
+        navigate(`/event-details/${eventName}`);
         return errorAlert("Error", "No reservation ID found. Please go back!");
       }
-      await startCheckout(reservationId);
-      // paymentLink&& window.open(paymentLink, "_blank");
-      // Redirect in the same tab
-      if (paymentLink&&ticket.type==='paid') {
-        window.location.href = paymentLink; // opens in the same tab
-      } else if (ticket.type==='free') {
-        navigate("/confirmation");
-      } 
+      const res = await startCheckout(reservationId);
+
+  if (res?.paystackLink && ticket?.type === "paid") {
+    window.location.href = res.paystackLink;
+  } else if (ticket?.type === "free") {
+    navigate("/confirmation");
+  }
     } catch (error) {
       console.log(error);
-      navigate(`/event-details/${eventDetail?.slug}`)
+      useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+      // navigate(`/event-details/${eventDetail?.slug}`)
     } finally {
       setisLoading(false);
     }
 
   }
+  console.log({paymentLink},'the payment');
+
   useEffect(() => {
     if( checkoutStage === 'checkout' && selectedTicketId) {
       startTimer(10); // Start the timer with 10 minutes
@@ -84,15 +89,39 @@ const Checkout: React.FC = () => {
     if (!timersInitialized) return; // Prevent running before timers are set
     if (timeLeft === 0&& endTime === null) {
       // Cancel the checkout process
-      cancelCheckout()
-      // Remove the cart data from local storage
-      reset()
-      // Timer expired, redirect to the event details page
-      navigate(`/event-details/${eventName}`);
+      useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+      // cancelCheckout()
+      // // Remove the cart data from local storage
+      // reset()
+      // // Timer expired, redirect to the event details page
+      // navigate(`/event-details/${eventName}`);
 
     }
   }, [timeLeft, eventName,timersInitialized,endTime]);
-  useCancelOnLeave(eventName);
+  // useCancelOnLeave(eventName);
+  useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+
+  if(!reservationId){
+    return (
+      <HomeLayout>
+        <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+          <h2 className="text-2xl font-semibold text-textBlack mb-4">
+            No active checkout session
+          </h2>
+          <p className="text-gray-600 mb-6">
+            It seems like you don't have an active checkout session. Please go
+            back to the event page and select your tickets.
+          </p>
+          <DefaultButton
+            variant="primary"
+            onClick={() => navigate(`/search`)}
+          >
+            Back to Events
+          </DefaultButton>
+        </div>
+      </HomeLayout>
+    );
+  }
   return (
     <>
       <HomeLayout>

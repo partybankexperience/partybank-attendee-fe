@@ -1,45 +1,102 @@
-import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { useCheckoutStore } from "../../stores/checkoutStore";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useTicketStore } from "../../stores/cartStore";
 
-const useCancelOnLeave = (eventName: string) => {
-  const cancelCheckout = useCheckoutStore((state) => state.cancelCheckout);
+/**
+ * useCheckoutLeaveGuards({ active, backTo, prompt })
+ *
+ * - active: boolean to arm/disarm
+ * - backTo: url to navigate to if user confirms leaving (e.g. event details)
+ * - prompt: optional custom confirmation text
+ */
+export function useCheckoutLeaveGuards({
+  active,
+  backTo,
+  prompt = "Leaving now will cancel your checkout progress. Proceed?",
+}: {
+  active: boolean;
+  backTo: string;
+  prompt?: string;
+}) {
   const navigate = useNavigate();
-
+  const cancelCheckout = useCheckoutStore((s) => s.cancelCheckout); // regular API cancel
+  const cancelCheckoutBeacon = useCheckoutStore((s) => s.cancelCheckoutBeacon); // beacon cancel
+  const { reset } = useTicketStore();
   useEffect(() => {
-    // Handler for page unload / closing tab
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      const confirmationMessage = "Leaving now will cancel your checkout progress. Are you sure?";
-      e.preventDefault();
-      e.returnValue = confirmationMessage; // Chrome requires setting returnValue
-      return confirmationMessage;
+    if (!active) return;
+
+    // 1) Unload / close / refresh -> use beacon/keepalive
+    const onUnload = () => {
+      try {
+        cancelCheckoutBeacon();
+      } catch (e) {
+        // swallow
+      }
     };
 
-    // Handler for internal navigation (back/forward or link clicks)
-    const handlePopState = () => {
-      const confirmLeave = window.confirm(
-        "Leaving now will cancel your checkout progress. Are you sure?"
-      );
-      if (confirmLeave) {
-        // Cancel checkout via sendBeacon
-        cancelCheckout("User left page");
-
-        // Redirect to event page
-        navigate(`/event-details/${eventName}`, { replace: true });
+    // 2) Back/Forward -> popstate
+    const onPopState = () => {
+      const ok = window.confirm(prompt);
+      if (ok) {
+        // user confirmed -> do normal (awaited) cancel then navigate
+        cancelCheckout("user_navigated_back").finally(() => {
+          // reset the ticket state
+          reset();
+          navigate(backTo, { replace: true });
+        });
       } else {
-        // Stay on the page: push state back so history doesn't move
+        // keep them on the page
         window.history.pushState(null, "", window.location.pathname);
       }
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("popstate", handlePopState);
+    // 3) Intercept same-origin anchor clicks (includes React Router <Link>)
+    const onDocumentClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const anchor = target.closest("a") as HTMLAnchorElement | null;
+      if (!anchor) return;
+
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+      // ignore external links, mailto, blank target, or anchors starting with #
+      if (href.startsWith("http") && !href.startsWith(window.location.origin))
+        return;
+      if (anchor.target === "_blank") return;
+      if (href.startsWith("#")) return;
+
+      e.preventDefault();
+
+      const ok = window.confirm(prompt);
+      if (ok) {
+        cancelCheckout("user_clicked_link").finally(() => {
+          // we navigate using the anchor href to preserve expected behavior
+          // if it's same-origin react-router link, navigate to it programmatically:
+          if (href.startsWith("/")) {
+            navigate(href);
+          } else {
+            window.location.href = href;
+          }
+        });
+      }
+    };
+
+    window.addEventListener("pagehide", onUnload);
+    window.addEventListener("beforeunload", onUnload);
+    window.addEventListener("popstate", onPopState);
+    document.addEventListener("click", onDocumentClick);
+
+    // store pushState so back works the first time
+    try {
+      window.history.pushState(null, "", window.location.href);
+    } catch {}
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("pagehide", onUnload);
+      window.removeEventListener("beforeunload", onUnload);
+      window.removeEventListener("popstate", onPopState);
+      document.removeEventListener("click", onDocumentClick);
     };
-  }, [cancelCheckout, navigate, eventName]);
-};
-
-export default useCancelOnLeave;
+  }, [active, backTo, prompt, navigate, cancelCheckout, cancelCheckoutBeacon]);
+}
