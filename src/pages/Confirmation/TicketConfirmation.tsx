@@ -5,19 +5,17 @@ import barcode from "../../assets/images/barcode.png";
 import checkmark from "../../assets/images/checkmark.png";
 import { useNavigate } from "react-router-dom";
 import HomeLayout from "../../components/layouts/HomeLayout";
+import { useConfirmationStore } from "../../stores/confirmationStore";
+import {
+  formatDate,
+  formatTimeRange,
+} from "../../components/helpers/dateTimeHelpers";
+import { useEffect } from "react";
 
 const Confirmation = () => {
   // Sample ticket data - this would typically come from props or state
-  const ticketData = {
-    eventName: "Xtasy Groove",
-    date: "12 Apr 2025",
-    time: "4:00 PM - 2:00 AM",
-    location: "Port Harcourt, Nigeria EL-CIELO HOMES",
-    ticketType: "XTAS PASS",
-    quantity: 3,
-    pricePerTicket: 5000,
-    total: 15000,
-  };
+  const { ticket, eventDetail, quantity,clearConfirmation } = useConfirmationStore();
+  
 
   const formatPrice = (price: number) => {
     return `₦${price.toLocaleString()}`;
@@ -45,7 +43,42 @@ const Confirmation = () => {
     animate: { opacity: 1, scale: 1 },
     transition: { duration: 0.5, ease: "easeOut" },
   };
+  useEffect(() => {
+    // Clear on tab close / refresh
+    const handleBeforeUnload = () => {
+      clearConfirmation();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
+    // Clear on internal navigation (location change)
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      clearConfirmation(); // cleanup on route change
+    };
+  }, [location, clearConfirmation]);
+if (!eventDetail || !ticket) {
+    return (
+      <HomeLayout>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-2xl font-semibold text-textBlack mb-4">
+              No Confirmation Details
+            </h2>
+            <p className="text-gray-600 mb-6">
+              It seems there are no ticket details to display. Please book a
+              ticket first.
+            </p>
+            <button
+              onClick={() => navigate("/search")}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
+            >
+              Back to Events
+            </button>
+          </div>
+        </div>
+      </HomeLayout>
+    );
+}
   return (
     <HomeLayout>
       <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -114,8 +147,8 @@ const Confirmation = () => {
                     <div className="  rounded-xl overflow-hidden flex-shrink-0">
                       <div>
                         <img
-                          src={xtasyGroove}
-                          alt=""
+                          src={eventDetail?.bannerImage || xtasyGroove}
+                          alt={eventDetail?.name || "Event"}
                           className="w-[5rem] md:w-[10rem] h-auto 
                           max-h-[45rem] lg:w-[8rem] lg:h-[10rem]"
                         />
@@ -124,24 +157,29 @@ const Confirmation = () => {
 
                     <div className="flex-1">
                       <h2 className="text-xl lg:text-2xl font-bold text-textBlack mb-4">
-                        {ticketData.eventName}
+                        {eventDetail?.name}
                       </h2>
 
                       {/* Event Info */}
                       <div className="space-y-3 text-textBlack font-semibold">
-
                         <div className="lg:flex lg:gap-5">
                           <div className="flex items-center gap-3 ">
                             <Calendar className="w-4 h-4 text-primary" />
                             <span className="text-sm lg:text-base">
-                              {ticketData.date}
+                              {" "}
+                              {formatDate(eventDetail?.startDate)}{" "}
+                              {eventDetail.endDate &&
+                                `- ${formatDate(eventDetail.endDate)}`}{" "}
                             </span>
                           </div>
 
                           <div className="flex items-center gap-3 ">
                             <Clock className="w-4 h-4 text-primary" />
                             <span className="text-sm lg:text-base">
-                              {ticketData.time}
+                              {formatTimeRange(
+                                eventDetail.startTime,
+                                eventDetail.endTime
+                              )}
                             </span>
                           </div>
                         </div>
@@ -149,7 +187,7 @@ const Confirmation = () => {
                         <div className="flex items-start gap-3 ">
                           <MapPin className="w-4 h-4 text-primary mt-0.5" />
                           <span className="text-sm lg:text-base">
-                            {ticketData.location}
+                          {eventDetail.venueName || "TBD"}
                           </span>
                         </div>
                       </div>
@@ -169,16 +207,16 @@ const Confirmation = () => {
                       <div className="flex items-center gap-3 mb-4">
                         <Ticket className="w-5 h-5 text-primary" />
                         <span className="font-semibold text-textBlack">
-                          x {ticketData.quantity} - {ticketData.ticketType}
+                          x {quantity} - {ticket.name}
                         </span>
                         <span className="ml-auto font-bold text-lg">
-                          {formatPrice(ticketData.total)}
+                        {typeof quantity === "number" && formatPrice(ticket.price * quantity)}
                         </span>
                       </div>
 
                       <div className="text-sm text-[#918F90] mb-4 font-medium">
                         • Booking fee per ticket:{" "}
-                        {formatPrice(ticketData.pricePerTicket)}
+                        {formatPrice(ticket.price)}
                       </div>
 
                       <div className="border-t pt-4">
@@ -187,7 +225,7 @@ const Confirmation = () => {
                             Total :
                           </span>
                           <span className="text-xl font-bold text-primary">
-                            {formatPrice(ticketData.total)}
+                          {typeof quantity === "number" && formatPrice(ticket.price * quantity)}
                           </span>
                         </div>
                       </div>

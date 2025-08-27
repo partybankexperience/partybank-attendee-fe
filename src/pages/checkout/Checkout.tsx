@@ -18,6 +18,7 @@ import { useNavigate } from "react-router";
 import { formatTimer, usePaymentTimer } from "../../components/helpers/timer";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { formatPrice } from "../../components/helpers/numberFormatHelpers";
+import { useConfirmationStore } from "../../stores/confirmationStore";
 
 const Checkout: React.FC = () => {
   // Animation variants
@@ -28,7 +29,8 @@ const Checkout: React.FC = () => {
   };
 
   const [isLoading, setisLoading] = useState(false);
-  const { paymentLink, startCheckout } = useCheckoutStore();
+  const { startCheckout } = useCheckoutStore();
+  const {setConfirmationDetails}= useConfirmationStore()
   const { selectedTicketId, quantity, eventDetail, ticket, getTotal} =
     useTicketStore();
   const { reservationId } = useCheckoutStore();
@@ -53,7 +55,7 @@ const Checkout: React.FC = () => {
     try {
       if (!selectedTicketId) {
         navigate(`/event-details/${eventName}`);
-errorAlert("Error", "No ticket selected. Please go back!");
+        errorAlert("Error", "No ticket selected. Please go back!");
         console.error("No ticket selected");
         return;
       }
@@ -66,6 +68,7 @@ errorAlert("Error", "No ticket selected. Please go back!");
   if (res?.paystackLink && ticket?.type === "paid") {
     window.location.href = res.paystackLink;
   } else if (ticket?.type === "free") {
+    setConfirmationDetails(eventDetail, ticket, quantity);
     navigate("/confirmation");
   }
     } catch (error) {
@@ -77,7 +80,6 @@ errorAlert("Error", "No ticket selected. Please go back!");
     }
 
   }
-  console.log({paymentLink},'the payment');
 
   useEffect(() => {
     if( checkoutStage === 'checkout' && selectedTicketId) {
@@ -90,11 +92,6 @@ errorAlert("Error", "No ticket selected. Please go back!");
     if (timeLeft === 0&& endTime === null) {
       // Cancel the checkout process
       useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-      // cancelCheckout()
-      // // Remove the cart data from local storage
-      // reset()
-      // // Timer expired, redirect to the event details page
-      // navigate(`/event-details/${eventName}`);
 
     }
   }, [timeLeft, eventName,timersInitialized,endTime]);
