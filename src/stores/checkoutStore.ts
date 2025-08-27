@@ -15,6 +15,7 @@ type CheckoutState = {
   eventId: string | null; // ✅ track event
   ticketId: string | null; // ✅ track ticket
   quantity: number | null;
+  initialized: boolean;
 
   // actions
   createAndStoreReservation: (
@@ -43,10 +44,12 @@ export const useCheckoutStore = create<CheckoutState>()(
       eventId: null,
       ticketId: null,
       quantity: null,
+      initialized: false,
 
       // ✅ Reservation pipeline
       createAndStoreReservation: async (eventId, ticketId, quantity, identity) => {
         const idempotencyKey = generateIdempotencyKey(ticketId, Date.now());
+        set({initialized: true});
         try {
           const res = await createReservation(eventId, ticketId, quantity, idempotencyKey, identity);
 
@@ -68,7 +71,6 @@ export const useCheckoutStore = create<CheckoutState>()(
       // ✅ Checkout
       startCheckout: async (reservationId) => {
         const idempotencyKey = generateIdempotencyKey(reservationId, Date.now());
-
         try {
           const res = await initiateCheckout(reservationId, idempotencyKey);
          
@@ -107,6 +109,7 @@ export const useCheckoutStore = create<CheckoutState>()(
       cancelCheckout: async () => {
         const { holdToken, reservationId} = get();
         if (!reservationId || !holdToken) return;
+        set({initialized: false});
 
         try {
           await cancelReservation(reservationId, holdToken);
@@ -132,6 +135,7 @@ export const useCheckoutStore = create<CheckoutState>()(
         const { reservationId, holdToken, status } = get();
         if (!reservationId || !holdToken) return;
         if (status !== "pending") return; // only cancel active holds
+        set({initialized: false});
       
         // change endpoint to the correct backend path expected for immediate cancel
         const url = `${import.meta.env.VITE_BASE_URL}/reservations/cancel/${reservationId}`; // <- adjust

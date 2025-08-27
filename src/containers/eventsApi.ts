@@ -23,6 +23,7 @@ const checkticketAvailability=async (ticketId:string,quantity:any): Promise<any>
       name: 'checkTicketAvailability',
       urlExtra: `/${ticketId}/check-availability`,
       data: {quantity },
+      alert: false,
     });
     return response;
   };

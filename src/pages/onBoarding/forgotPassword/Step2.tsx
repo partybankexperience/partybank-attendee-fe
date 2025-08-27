@@ -82,7 +82,7 @@ const StepTwo = ({ otp, setOtp, onSubmit, isLoading}:any) => {
         Remember your password?{" "}
         <span
           className="text-red font-medium cursor-pointer hover:text-deepRed"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/login")}
         >
           Sign In
         </span>

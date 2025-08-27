@@ -88,6 +88,7 @@ const [timersInitialized, setTimersInitialized] = useState(false);
       setisLoading(true)
       const res=await SignUpUser(email,password,firstName,lastName,genderSelection)
       setUser(res)
+      console.log(res, "Sign Up Response");
       if(checkoutStage==='emailVerification'){
         // Storage.setItem("checkoutStage", "signUp");
         // setCheckoutStage('signUp')

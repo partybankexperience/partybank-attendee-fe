@@ -130,7 +130,7 @@ const EventDetails: React.FC = () => {
       ]);
     } catch (err) {
       console.error("Pipeline failed:", err);
-      errorAlert("Error", (err as Error).message || "Something went wrong");
+      // errorAlert("Error", (err as Error).message || "Something went wrong");
     }
   }
   

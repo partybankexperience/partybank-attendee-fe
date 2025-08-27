@@ -1,16 +1,27 @@
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import login from "../../assets/images/Login.svg";
 import logo from "../../assets/images/logo.svg";
 import avatar1 from "../../assets/images/avatar1.svg";
 import avatar2 from "../../assets/images/avatar2.svg";
 import avatar3 from "../../assets/images/avatar3.svg";
 import { ToastContainer } from "react-toastify";
+import { useCheckoutLeaveGuards} from "../../pages/checkout/CancelCheckout";
+import { Storage } from "../../stores/InAppStorage";
+import { useCheckoutStore } from "../../stores/checkoutStore";
 
 interface LoginLayoutProps {
   children: ReactNode;
 }
 
 const LoginLayout = ({ children }: LoginLayoutProps) => {
+  const eventName=Storage.getItem('eventName')
+  const initialized= useCheckoutStore((state)=>state.initialized)
+  const redirect = Storage?.getItem("redirectPath") || null;
+
+  if (redirect) useCheckoutLeaveGuards({
+    active: initialized,
+    backTo: `/event-details/${eventName}`,
+  });
   return (
     <div className=" min-h-screen flex">
       <ToastContainer/>

@@ -164,7 +164,7 @@ const Login = () => {
       }
     };
     useEffect(() => {
-        if( checkoutStage === 'emailVerification' && selectedTicketId) {
+        if( checkoutStage === 'eventDetails' && selectedTicketId) {
           startTimer(10); // Start the timer with 10 minutes
           setTimersInitialized(true);
         }
@@ -172,14 +172,7 @@ const Login = () => {
       useEffect(() => {
         if (!timersInitialized) return; // Prevent running before timers are set
         if (timeLeft === 0&& endTime === null) {
-          // Cancel the checkout process
-        //   cancelCheckout()
           useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-          // Remove the cart data from local storage
-        //   reset()
-        //   // Timer expired, redirect to the event details page
-        //   navigate(`/event-details/${eventName}`);
-    
         }
       }, [timeLeft, eventName,timersInitialized,endTime]);
       const [loading, setIsLoading] = useState(false)
@@ -197,6 +190,8 @@ const Login = () => {
           setIsLoading(false);
         }
       };
+      console.log(timeLeft,checkoutStage)
+      
       return (
     <LoginLayout>
       <form

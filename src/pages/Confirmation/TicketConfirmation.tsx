@@ -14,7 +14,7 @@ import { useEffect } from "react";
 
 const Confirmation = () => {
   // Sample ticket data - this would typically come from props or state
-  const { ticket, eventDetail, quantity,clearConfirmation } = useConfirmationStore();
+  const { ticketsC, eventDetailsC, quantityC,clearConfirmation } = useConfirmationStore();
   
 
   const formatPrice = (price: number) => {
@@ -43,20 +43,23 @@ const Confirmation = () => {
     animate: { opacity: 1, scale: 1 },
     transition: { duration: 0.5, ease: "easeOut" },
   };
+  
   useEffect(() => {
-    // Clear on tab close / refresh
-    const handleBeforeUnload = () => {
-      clearConfirmation();
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    // Store the path where this hook was mounted (confirmation page)
+    const currentPath = location.pathname;
 
-    // Clear on internal navigation (location change)
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      clearConfirmation(); // cleanup on route change
+      // This runs when the component unmounts (i.e., navigating away)
+      if (location.pathname !== currentPath) {
+        clearConfirmation();
+        // navigate("/", { replace: true }); // redirect to homepage
+      }
     };
-  }, [location, clearConfirmation]);
-if (!eventDetail || !ticket) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  console.log({ticketsC,eventDetailsC,quantityC},'the details');
+
+if (!eventDetailsC || !ticketsC) {
     return (
       <HomeLayout>
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -147,8 +150,8 @@ if (!eventDetail || !ticket) {
                     <div className="  rounded-xl overflow-hidden flex-shrink-0">
                       <div>
                         <img
-                          src={eventDetail?.bannerImage || xtasyGroove}
-                          alt={eventDetail?.name || "Event"}
+                          src={eventDetailsC?.bannerImage || xtasyGroove}
+                          alt={eventDetailsC?.name || "Event"}
                           className="w-[5rem] md:w-[10rem] h-auto 
                           max-h-[45rem] lg:w-[8rem] lg:h-[10rem]"
                         />
@@ -157,7 +160,7 @@ if (!eventDetail || !ticket) {
 
                     <div className="flex-1">
                       <h2 className="text-xl lg:text-2xl font-bold text-textBlack mb-4">
-                        {eventDetail?.name}
+                        {eventDetailsC?.name}
                       </h2>
 
                       {/* Event Info */}
@@ -167,9 +170,9 @@ if (!eventDetail || !ticket) {
                             <Calendar className="w-4 h-4 text-primary" />
                             <span className="text-sm lg:text-base">
                               {" "}
-                              {formatDate(eventDetail?.startDate)}{" "}
-                              {eventDetail.endDate &&
-                                `- ${formatDate(eventDetail.endDate)}`}{" "}
+                              {formatDate(eventDetailsC?.startDate)}{" "}
+                              {eventDetailsC.endDate &&
+                                `- ${formatDate(eventDetailsC.endDate)}`}{" "}
                             </span>
                           </div>
 
@@ -177,8 +180,8 @@ if (!eventDetail || !ticket) {
                             <Clock className="w-4 h-4 text-primary" />
                             <span className="text-sm lg:text-base">
                               {formatTimeRange(
-                                eventDetail.startTime,
-                                eventDetail.endTime
+                                eventDetailsC.startTime,
+                                eventDetailsC.endTime
                               )}
                             </span>
                           </div>
@@ -187,7 +190,7 @@ if (!eventDetail || !ticket) {
                         <div className="flex items-start gap-3 ">
                           <MapPin className="w-4 h-4 text-primary mt-0.5" />
                           <span className="text-sm lg:text-base">
-                          {eventDetail.venueName || "TBD"}
+                          {eventDetailsC.venueName || "TBD"}
                           </span>
                         </div>
                       </div>
@@ -207,16 +210,16 @@ if (!eventDetail || !ticket) {
                       <div className="flex items-center gap-3 mb-4">
                         <Ticket className="w-5 h-5 text-primary" />
                         <span className="font-semibold text-textBlack">
-                          x {quantity} - {ticket.name}
+                          x {quantityC} - {ticketsC.name}
                         </span>
                         <span className="ml-auto font-bold text-lg">
-                        {typeof quantity === "number" && formatPrice(ticket.price * quantity)}
+                        {typeof quantityC === "number" && formatPrice(ticketsC.price * quantityC)}
                         </span>
                       </div>
 
                       <div className="text-sm text-[#918F90] mb-4 font-medium">
                         • Booking fee per ticket:{" "}
-                        {formatPrice(ticket.price)}
+                        {formatPrice(ticketsC.price)}
                       </div>
 
                       <div className="border-t pt-4">
@@ -225,7 +228,7 @@ if (!eventDetail || !ticket) {
                             Total :
                           </span>
                           <span className="text-xl font-bold text-primary">
-                          {typeof quantity === "number" && formatPrice(ticket.price * quantity)}
+                          {typeof quantityC === "number" && formatPrice(ticketsC.price * quantityC)}
                           </span>
                         </div>
                       </div>

@@ -1,22 +1,46 @@
-// stores/confirmationStore.ts
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { useTicketStore } from "./cartStore";
 
 interface ConfirmationState {
-  eventDetail: any | null;
-  ticket: any | null;
-  quantity: number | null;
-  setConfirmationDetails: (eventDetail: any, ticket: any, quantity: number) => void;
+  eventDetailsC: any | null;
+  ticketsC: any | null;
+  quantityC: number | null;
+  setConfirmationDetails: (eventDetailsC: any, ticketsC: any, quantityC: number) => void;
   clearConfirmation: () => void;
 }
 
-export const useConfirmationStore = create<ConfirmationState>((set) => ({
-  eventDetail: null,
-  ticket: null,
-  quantity: null,
+export const useConfirmationStore = create<ConfirmationState>()(
+  persist(
+    (set) => ({
+      eventDetailsC: null,
+      ticketsC: null,
+      quantityC: null,
 
-  setConfirmationDetails: (eventDetail, ticket, quantity) =>
-    set({ eventDetail, ticket, quantity }),
+      setConfirmationDetails: (eventDetailsC, ticketsC, quantityC) =>
+        set({ eventDetailsC, ticketsC, quantityC }),
 
-  clearConfirmation: () =>
-    set({ eventDetail: null, ticket: null, quantity: null }),
-}));
+      clearConfirmation: () => {
+        const { reset } = useTicketStore.getState();
+        reset(); // reset cart
+        localStorage.removeItem("confirmation-storage"); // clear persisted confirmation data
+        set({ eventDetailsC: null, ticketsC: null, quantityC: null });
+      },
+    }),
+    {
+      name: "confirmation-storage", // key in localStorage
+      storage: {
+        getItem: (name: string) => {
+          const str = localStorage.getItem(name);
+          return str ? JSON.parse(str) : null;
+        },
+        setItem: (name: string, value: any) => {
+          localStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: (name: string) => {
+          localStorage.removeItem(name);
+        },
+      },
+    }
+  )
+);

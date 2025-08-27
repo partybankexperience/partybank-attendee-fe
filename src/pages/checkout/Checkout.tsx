@@ -33,7 +33,7 @@ const Checkout: React.FC = () => {
   const {setConfirmationDetails}= useConfirmationStore()
   const { selectedTicketId, quantity, eventDetail, ticket, getTotal} =
     useTicketStore();
-  const { reservationId } = useCheckoutStore();
+  const { reservationId,resetCheckout } = useCheckoutStore();
   const eventName = Storage.getItem("eventName");
  const { checkoutStage } = useAuthStore();
   const navigate=useNavigate()
@@ -64,13 +64,15 @@ const Checkout: React.FC = () => {
         return errorAlert("Error", "No reservation ID found. Please go back!");
       }
       const res = await startCheckout(reservationId);
-
-  if (res?.paystackLink && ticket?.type === "paid") {
-    window.location.href = res.paystackLink;
-  } else if (ticket?.type === "free") {
+      
+      if (res?.paystackLink && ticket?.type === "paid") {
+        window.location.href = res.paystackLink;
+      } else if (ticket?.type === "free") {
     setConfirmationDetails(eventDetail, ticket, quantity);
+    resetCheckout()
     navigate("/confirmation");
   }
+  useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
     } catch (error) {
       console.log(error);
       useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
@@ -98,7 +100,7 @@ const Checkout: React.FC = () => {
   // useCancelOnLeave(eventName);
   useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
 
-  if(!reservationId){
+  if(!reservationId ){
     return (
       <HomeLayout>
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
