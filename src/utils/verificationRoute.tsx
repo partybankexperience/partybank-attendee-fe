@@ -20,7 +20,7 @@ const VerificationRoute = ({ children }: VerificationRouteProps) => {
       return;
     }
     setAuthorized(true);
-  }, [verificationToken, navigate]);
+  }, []);
 
   if (authorized === null) return null; // optionally loading spinner
   if (authorized === false) return null; // redirected already

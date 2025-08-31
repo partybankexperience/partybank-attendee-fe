@@ -95,7 +95,8 @@ export const apiCall = ({
     if (endPoints[theName]?.auth) {
       headers["Authorization"] = `Bearer ${token}`;
     }
-
+console.log(token,'token used')
+console.log(authStore.verificationToken,'verificationToken')
     axios({
       url: `${baseUrl()}${endPoints[theName]?.url}${urlExtra || ""}`,
       method: endPoints[theName]?.method,

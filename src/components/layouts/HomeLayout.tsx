@@ -53,7 +53,7 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
       >
         <img src={logo} alt="PartyBank Attendee Logo" className="w-[4rem]" />
 
-        <ul className="flex gap-[2.5rem] text-black text-[1rem] items-center">
+        {/* <ul className="flex gap-[2.5rem] text-black text-[1rem] items-center">
           <li>
             <a href="/" aria-label="About PartyBank">About Us</a>
           </li>
@@ -63,7 +63,7 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
           <li>
             <a href="/contact" aria-label="Contact PartyBank">Contact Us</a>
           </li>
-        </ul>
+        </ul> */}
         {user ? (
   <div className="flex gap-[1.5rem] items-center">
     {/* Profile icon link */}

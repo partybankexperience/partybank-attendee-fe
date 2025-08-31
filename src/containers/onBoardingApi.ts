@@ -28,6 +28,7 @@ const SignUpUser = async (email: string, password: string,firstName:string,lastN
     const response = await apiCall({
       name: 'signUp',
       data: { email, password,firstName,lastName,gender },
+      useVerificationToken:true
     });
     return response;
   };
