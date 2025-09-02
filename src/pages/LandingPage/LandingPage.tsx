@@ -3,11 +3,6 @@ import logo from "../../assets/images/logo.svg";
 import footerLogo from "../../assets/images/landingpage/footerLogo.svg";
 import floatingLogo from "../../assets/images/landingpage/floatingLogo.svg";
 import pinkyvector from "../../assets/images/pinkyvector.svg";
-import canvas from "../../assets/images/landingpage/canvas.png";
-import playground from "../../assets/images/landingpage/playground.png";
-import rekli from "../../assets/images/landingpage/rekli.png";
-import snap from "../../assets/images/landingpage/snap.png";
-import xtasy from "../../assets/images/landingpage/xtasy.png";
 import trad from "../../assets/images/landingpage/trad.png";
 import event from "../../assets/images/landingpage/event.png";
 import effect from "../../assets/images/landingpage/effect.png";
@@ -16,6 +11,7 @@ import DefaultButton from "../../components/buttons/DefaultButton";
 import { useNavigate } from "react-router";
 
 const PartyBankLanding = () => {
+  // Motion variants
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
@@ -24,42 +20,30 @@ const PartyBankLanding = () => {
 
   const staggerContainer = {
     animate: {
-      transition: {
-        staggerChildren: 0.1,
-      },
+      transition: { staggerChildren: 0.1 },
     },
   };
 
-  const scaleOnHover = {
-    whileHover: { scale: 1.05 },
-    transition: { type: "spring", stiffness: 300 },
-  };
+  // Shared button styles
+  const btnMd = "!px-6 !py-3 !text-[15px] !font-semibold !rounded-lg";
+  const btnLg = "!px-8 !py-4 !text-[16px] !font-semibold !rounded-lg";
 
-  const data = [
-    {
-      id: 1,
-      image: snap,
-    },
-    {
-      id: 2,
-      image: canvas,
-    },
-    {
-      id: 3,
-      image: xtasy,
-    },
-    {
-      id: 1,
-      image: playground,
-    },
-    {
-      id: 1,
-      image: rekli,
-    },
+  // Sample tiles (swap for real data anytime)
+  const sampleTiles = [
+    // { id: 1, title: "Afrobeats Night", imgUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e" },
+    // { id: 2, title: "Neon Rave", imgUrl: "https://images.unsplash.com/photo-1487412912498-0447578fcca8" },
+    { id: 3, title: "Live Festival", imgUrl: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3" },
+    { id: 4, title: "Campus Bash", imgUrl: "https://images.unsplash.com/photo-1506157786151-b8491531f063" },
+    { id: 5, title: "Friday Vibes", imgUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819" },
+    { id: 6, title: "Late Night Jam", imgUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30" },
+    { id: 7, title: "Beach Party", imgUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee" },
+    // { id: 8, title: "Summer Heat", imgUrl: "https://images.unsplash.com/photo-1514525253330-7a46d19cd819" },
   ];
-const navigate=useNavigate()
+
+  const navigate = useNavigate();
+
   return (
-    <div className="bg-[#F8F9F9]">
+    <div className="bg-[#F8F9F9] overflow-x-hidden">
       {/* Header */}
       <header className="relative z-50 bg-white">
         <nav className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 max-w-7xl mx-auto">
@@ -69,42 +53,20 @@ const navigate=useNavigate()
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div>
-              <img src={logo} alt="" className="w-[3.938rem]" />
-            </div>
+            <img src={logo} alt="PartyBank" className="w-[3.938rem]" />
           </motion.div>
 
-          <motion.div
-            className="hidden  items-center space-x-8"
+          {/* <motion.div
+            className="hidden md:flex items-center space-x-8"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <a
-              href="#"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              About Us
-            </a>
-            <a
-              href="#"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              Create Events
-            </a>
-            <a
-              href="#"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              FAQs
-            </a>
-            <a
-              href="#"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              Contact Us
-            </a>
-          </motion.div>
+            <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">About Us</a>
+            <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Create Events</a>
+            <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">FAQs</a>
+            <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Contact Us</a>
+          </motion.div> */}
 
           <motion.div
             className="flex items-center space-x-4"
@@ -112,29 +74,31 @@ const navigate=useNavigate()
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            {/* <button className="text-primary hover:text-red-600 font-medium transition-colors">
-              Create Account
-            </button> */}
-            <DefaultButton onClick={() => navigate('/login')}>
-            Create Events
+            <DefaultButton onClick={() => navigate("/login")} className={btnMd}>
+              Create Events
             </DefaultButton>
-            {/* <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors" >
-              
-            </button> */}
           </motion.div>
         </nav>
       </header>
 
+      {/* HERO */}
       <div className="relative overflow-hidden">
-        {/* Hero Section */}
-        <section className="relative px-4 sm:px-6 lg:px-8 pt-16 pb-12 md:pb-24">
-          <div className="absolute right-0 top-0">
-            <img src={spiral} alt="" className="w-[4.938rem] lg:w-[10rem]" />
-          </div>
-          <div className="absolute left-[-1rem] top-[13rem] md:top-[19rem] lg:top-[13rem] scale-x-[-1] rotate-[-35deg]">
-            <img src={spiral} alt="" className="w-[4.938rem] lg:w-[10rem]" />
-          </div>
-          <div className="max-w-7xl mx-auto relative">
+        <section className="relative pt-16 pb-20 md:pb-28">
+          {/* Decorations */}
+          <img
+            src={spiral}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none select-none absolute right-2 top-2 w-16 lg:w-40 opacity-40"
+          />
+          <img
+            src={spiral}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none select-none absolute -left-3 top-56 md:top-72 lg:top-52 w-16 lg:w-40 opacity-30 -scale-x-100 -rotate-12"
+          />
+
+          <div className="max-w-7xl mx-auto px-5 md:px-8 lg:px-10 xl:px-12 relative">
             <motion.div
               className="text-center max-w-4xl mx-auto"
               variants={staggerContainer}
@@ -142,371 +106,314 @@ const navigate=useNavigate()
               animate="animate"
             >
               <motion.h1
-                className="text-[1.5rem] sm:text-5xl lg:text-[3rem] font-semibold text-textBlack md:mb-4
-               md:leading-12 leading-7 mb-4"
+                className="text-[1.75rem] sm:text-5xl lg:text-[3rem] font-semibold text-textBlack leading-tight mb-4"
                 variants={fadeInUp}
               >
-                Celebrations secured, <br /> Best{" "}
-                <span className="text-primary">memories</span> deposited
+                Celebrations secured, <br /> Best <span className="text-primary">memories</span> deposited
               </motion.h1>
 
-              <motion.p
-                className="text-xl text-gray-600 mb-4 md:mb-4"
-                variants={fadeInUp}
-              >
+              <motion.p className="text-lg md:text-xl text-gray-600 mb-6" variants={fadeInUp}>
                 Where every ticket holds a celebration.
               </motion.p>
 
-              {/* <motion.button
-                className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
-               hover:bg-red-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-                variants={fadeInUp}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Buy Tickets
-              </motion.button> */}
-              <DefaultButton onClick={() => navigate('/search')} className="!px-8 !py-4 " >
+              <DefaultButton onClick={() => navigate("/search")} className={btnLg}>
                 Buy Tickets
               </DefaultButton>
             </motion.div>
 
             {/* Features Badge */}
             <motion.div
-              className="absolute top-[12rem] right-[5rem] hidden lg:block"
-              initial={{ opacity: 0, scale: 0.8 }}
+              className="hidden lg:block absolute top-24 right-6 xl:right-10"
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.8 }}
             >
-              <div
-                className="bg-white text-textBlack rounded-2xl px-7 py-4
-            shadow-lg font-semibold"
-              >
-                <div className="mb-3">
-                  <img
-                    src={pinkyvector}
-                    alt=""
-                    className="w-[4.938rem] lg:w-[2rem]"
-                  />
+              <div className="bg-white/95 backdrop-blur-sm text-textBlack rounded-2xl px-6 py-4 shadow-md border border-gray-100">
+                <div className="mb-3 flex items-center gap-2">
+                  <img src={pinkyvector} alt="" className="w-7" />
+                  <span className="text-sm font-semibold">Simple pricing</span>
                 </div>
-                <p className="text-sm leading-5">5% + N100 for paid tickets.</p>
+                <p className="text-sm leading-5">5% + ₦100 for paid tickets.</p>
                 <p className="text-sm leading-5">Free for free tickets.</p>
                 <p className="text-sm leading-5">No hidden charges.</p>
               </div>
             </motion.div>
           </div>
         </section>
-        {/* Event Cards Section */}
-        <section className="px-4 sm:px-6 lg:px-8 overflow-hidden lg:ml-[2rem] lg:mt-10 relative">
-          <div className="max-w-7xl mx-auto ">
-            <motion.div
-              className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-5 items-end justify-center"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              {data.map((data) => {
-                const { id, image } = data;
 
-                return (
-                  <motion.div
-                    key={id}
-                    className=""
-                    variants={scaleOnHover}
-                    whileHover="whileHover"
-                  >
-                    <img
-                      src={image}
-                      alt=""
-                      className="w-[8rem] sm:w-[10rem] lg:w-[13rem]"
-                    />
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+        {/* IMAGE STRIP — short → tall → short → tall … */}
+        <section className="relative mt-6">
+          <div className="max-w-7xl mx-auto px-5 md:px-8 lg:px-10 xl:px-12">
+            <div className="relative overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <ul className="flex items-end gap-3 md:gap-4">
+                {sampleTiles.map((t, i) => {
+                  const isTall = i % 2 === 1; // alternate strictly
+                  const heightCls = isTall ? "h-64 sm:h-72 lg:h-80" : "h-40 sm:h-48 lg:h-56";
+                  return (
+                    <li key={t.id} className="snap-start shrink-0">
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className={`relative ${heightCls} w-40 sm:w-48 lg:w-56 rounded-xl overflow-hidden border border-[#EAEAEA] bg-white`}
+                        title={t.title}
+                      >
+                        <img
+                          src={t.imgUrl}
+                          alt={t.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 p-2 text-white text-xs sm:text-sm font-medium bg-gradient-to-t from-black/50 to-transparent">
+                          {t.title}
+                        </div>
+                      </motion.div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent hidden sm:block" />
+            </div>
           </div>
         </section>
       </div>
 
-      {/* Statistics Section */}
-      <div className="lg:w-screen bg-white">
-        <section
-          className="bg-white flex justify-center items-center px-5 py-[3rem] 
-            max-w-7xl mx-auto "
-        >
-          <div
-            className="lg:flex max-w-7xl mx-auto lg:gap-[3rem] justify-center items-center
-            lg:ml-[2.5rem] container bg-red relative"
-          >
-            {/* .................................................... */}
+      {/* Statistics Section (equal-height, clean, captioned) */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-5 md:px-8 lg:px-10 xl:px-12 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            {/* LEFT COLUMN */}
             <motion.div
-              className=" rounded-3xl lg:w-[53.5%] relative "
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
+              className="flex flex-col h-full space-y-6"
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6 }}
             >
-              <div className="lg:flex gap-5 w-full">
-                {/* Party banker */}
+              {/* Top row: two cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <motion.div
-                  className="mb-6 bg-[#FFF2F4] py-4 px-8 rounded-[20px] lg:w-[50%]"
-                  // variants={scaleOnHover}
-                  // whileHover="whileHover"
+                  className="bg-[#FFF2F4] rounded-[20px] p-6 h-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.4 }}
                 >
-                  <p className="text-[40px] lg:text-[35px] font-bold text-primary mr-2 leading-14">
+                  <p className="text-[40px] lg:text-[35px] font-bold text-primary">
                     1000+
                   </p>
-                  <p className="text-[24px] lg:text-[16px] font-semibold text-textBlack ">
+                  <p className="text-[24px] lg:text-[16px] font-semibold text-textBlack">
                     Partybankers
                   </p>
-                  <p className="text-[16px] lg:text-[16px] font-medium text-[#A7A5A6] mt-6">
+                  <p className="text-[16px] font-medium text-[#A7A5A6] mt-6">
                     Experience seamless discovery of the best events to attend
                   </p>
                 </motion.div>
-                {/* Explore Tickets */}
-                <motion.div className="mb-6 bg-[#FFF2F4] py-4 px-8 rounded-[20px] lg:w-[50%]">
-                  <div>
-                    <img
-                      src={logo}
-                      alt=""
-                      className="w-[6.938rem] lg:w-[5rem] lg:mt-3 mb-10"
-                    />
-                  </div>
-                  <motion.button
-                    className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                  >
+
+                <motion.div
+                  className="bg-[#FFF2F4] rounded-[20px] p-6 h-full flex flex-col justify-between"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.4, delay: 0.05 }}
+                >
+                  <img src={logo} alt="PartyBank" className="w-[6.938rem] lg:w-[5rem] mb-6" />
+                  <DefaultButton className={btnMd}>
                     Explore Tickets
-                  </motion.button>
+                  </DefaultButton>
                 </motion.div>
               </div>
+
               {/* Memories */}
               <motion.div
-                className="bg-[#FFF2F4] rounded-3xl p-8 text-textBlack lg:w-full
-                 flex justify-center items-center relative overflow-hidden"
-                //   variants={scaleOnHover}
-                //   whileHover="whileHover"
+                className="bg-[#FFF2F4] rounded-[20px] p-8 text-textBlack relative overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
               >
-                <div className="absolute right-0 bottom-0 rotate-[55deg]">
-                  <img
-                    src={spiral}
-                    alt=""
-                    className="w-[4.938rem] lg:w-[7rem]"
-                  />
-                </div>
+                <img
+                  src={spiral}
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none select-none absolute right-2 bottom-2 rotate-[55deg] w-[4.938rem] lg:w-[7rem] opacity-80"
+                />
                 <div className="relative">
-                  <p className="text-3xl lg:text-[35px] font-semibold mb-6 pt-4">
+                  <p className="text-3xl lg:text-[35px] font-semibold mb-4 pt-2">
                     More than memories created
                   </p>
-                  <p className="text-lg lg:text-[16px] opacity-90 mb-6 text-[#A7A5A6]">
-                    Stay in the loop with the hottest events happening daily on
-                    Partybank. Don't miss the chance to discover unforgettable
-                    experiences and exciting moments, wherever you are!
+                  <p className="text-lg lg:text-[16px] opacity-90 text-[#A7A5A6]">
+                    Stay in the loop with the hottest events happening daily on Partybank.
+                    Don&apos;t miss the chance to discover unforgettable experiences and
+                    exciting moments, wherever you are!
                   </p>
                 </div>
               </motion.div>
             </motion.div>
 
-            {/* .................................................... */}
-
+            {/* RIGHT COLUMN — matches LEFT height on lg+, with caption */}
             <motion.div
-              className="relative lg:w-[50%] hidden lg:block lg:mr-[2rem] bg-green"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
+              className="h-full"
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <motion.div
-                className="lex items-center justify-center w-[8rem] sm:w-[10rem] lg:w-full 
-                 rounded-[20px] bg-cover bg-center h-[12rem] sm:h-[16rem] md:h-[20rem] lg:h-[28rem]"
-                style={{
-                  backgroundImage: `url(${trad})`,
-
-                }}
-              >
-              </motion.div>
+              <div className="relative h-full min-h-[22rem] lg:min-h-0 rounded-[20px] overflow-hidden">
+                <div
+                  className="absolute inset-0 bg-center bg-cover"
+                  style={{ backgroundImage: `url(${trad})` }}
+                  role="img"
+                  aria-label="Party scene"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-32 md:h-40 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                <p className="absolute left-5 bottom-5 md:left-6 md:bottom-6 text-white text-lg md:text-2xl font-semibold leading-snug drop-shadow-sm">
+                  Bringing the fun to <br className="hidden sm:block" />
+                  you anywhere you are.
+                </p>
+              </div>
             </motion.div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* Event Planning Dashboard Section */}
-      <section className="px-4 sm:px-6 lg:px-8  py-[3rem]">
-        <div className="max-w-7xl mx-auto text-center">
+      <section className="py-16" aria-labelledby="event-dashboard-heading">
+        <div className="max-w-7xl mx-auto px-5 md:px-8 lg:px-10 xl:px-12 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.0 }}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <h2 className="text-4xl lg:text-[35px] font-semibold text-gray-900 mb-6">
-              Effortless <span className="text-primary">Event Planning</span>{" "}
-              Dashboard
+            <h2
+              id="event-dashboard-heading"
+              className="text-[28px] md:text-[36px] lg:text-[40px] font-semibold text-gray-900 mb-4"
+            >
+              Effortless <span className="text-primary">Event Planning</span> Dashboard
             </h2>
-            <p className="text-xl lg:text-[16px] text-[#A7A5A6] mb-3 max-w-3xl mx-auto">
-              Easily manage and track your event from a single intuitive
-              dashboard—plan and execute seamlessly in just a few steps.
+            <p className="text-base md:text-lg text-[#A7A5A6] mb-6 md:mb-8 max-w-3xl mx-auto">
+              Easily manage and track your event from a single intuitive dashboard—plan and execute
+              seamlessly in just a few steps.
             </p>
           </motion.div>
 
-          {/* Dashboard Preview */}
           <motion.div
-            className="relative bg-transparent rounded-2xl p-6 "
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
+            className="relative rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm"
+            initial={{ opacity: 0, scale: 0.98 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="">
-              <img src={event} alt="" className="w-full" />
-            </div>
+            <img
+              src={event}
+              alt="PartyBank Event Planning dashboard preview"
+              className="w-full h-auto block"
+              loading="lazy"
+            />
           </motion.div>
-            <motion.a
+
+          <motion.a
             href="https://example.com"
-            className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
-                   hover:bg-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-600"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.4 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center justify-center mt-6 bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
+                       hover:bg-red-600 transition-all duration-300 shadow-lg hover:shadow-xl
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600"
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Create Event on PartyBank"
-            >
-            Create Event
-            </motion.a>
-          {/* <motion.button
-            className="bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
-             hover:bg-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.4 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             Create Event
-          </motion.button> */}
+          </motion.a>
         </div>
       </section>
 
       {/* Footer */}
-      <footer
-        className="bg-[#080D18] text-white px-4 sm:px-6 lg:px-8 py-16 relative 
-      overflow-hidden"
-      >
-        {/* Effect */}
-        <div
-          className="mb-3 absolute right-0 bottom-0
-          opacity-40    "
-        >
-          <img src={effect} alt="" className="w-[38rem] md:w-[30rem]" />
-        </div>
+      <footer className="relative bg-[#080D18] text-white overflow-hidden">
+        {/* Decorative effect (bottom-right) */}
+        <img
+          src={effect}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute right-0 bottom-0 w-[24rem] md:w-[30rem] opacity-30"
+        />
 
-        {/* Floating */}
-        <div
-          className="mb-3 absolute left-[3rem] md:left-[2rem] top-[10rem] md:top-[2rem]
-         lg:hidden opacity-40"
-        >
-          <img src={floatingLogo} alt="" className="w-[38rem] md:w-[20rem]" />
-        </div>
+        {/* Decorative floating logo (small screens) */}
+        <img
+          src={floatingLogo}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute left-6 top-10 w-[18rem] md:w-[14rem] opacity-20 lg:hidden"
+        />
 
-        <div className="max-w-7xl mx-auto relative">
-          <div className="md:flex md:gap-[5rem] lg:gap-8 justify-center">
-            <div className=" md:flex lg:w-[55%] relative">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.6 }}
-              >
-                <div className="mb-3">
-                  <img
-                    src={footerLogo}
-                    alt=""
-                    className="w-[8rem] sm:w-[10rem] lg:w-[7rem]"
-                  />
-                </div>
-              </motion.div>
+        <div className="relative z-10 max-w-7xl mx-auto px-5 md:px-8 lg:px-10 xl:px-12 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 lg:gap-12">
+            {/* Brand */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <img src={footerLogo} alt="PartyBank" className="w-32 md:w-28 lg:w-28" />
+            </motion.div>
 
-              {/* Floating Logo */}
-              <div
-                className="hidden lg:flex md:absolute md:top-[3rem] md:left-[5rem] lg:top-[3.8rem] 
-              lg:left-[10rem] lg:w-[50vw] "
-              >
-                <div className="mb-3">
-                  <img
-                    src={floatingLogo}
-                    alt=""
-                    className="w-[8rem] sm:w-[10rem] lg:w-[17rem]"
-                  />
-                </div>
-                <motion.div
-                  className="mt-12 pt-8 text-center text-gray-400 hidden lg:block w-[20rem] relative top-[1.3rem]"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 2.0 }}
-                >
-                  © 2025 PartyBank. All rights reserved.
-                </motion.div>
-              </div>
-            </div>
+            {/* Company */}
+            <motion.nav
+              aria-label="Company"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+            >
+              <h3 className="font-semibold mb-4">Company</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Terms and Conditions</a></li>
+              </ul>
+            </motion.nav>
 
-            {/* Links */}
-            <div className="md:flex gap-[3rem] lg:ml-[2rem] space-y-4 md:space-y-0 relative">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.7 }}
-              >
-                <h3 className="font-semibold mb-4">Company</h3>
-                <div className="space-y-2">
-                  <div className="text-gray-400 hover:text-white cursor-pointer">
-                    About Us
-                  </div>
-                  <div className="text-gray-400 hover:text-white cursor-pointer">
-                    Privacy Policy
-                  </div>
-                  <div className="text-gray-400 hover:text-white cursor-pointer">
-                    Terms and Conditions
-                  </div>
-                </div>
-              </motion.div>
+            {/* Products */}
+            <motion.nav
+              aria-label="Products"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <h3 className="font-semibold mb-4">Products</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Create Event</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Attend Event</a></li>
+              </ul>
+            </motion.nav>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.8 }}
-              >
-                <h3 className="font-semibold mb-4">Products</h3>
-                <div className="space-y-2">
-                  <div className="text-gray-400 hover:text-white cursor-pointer">
-                    Create Event
-                  </div>
-                  <div className="text-gray-400 hover:text-white cursor-pointer">
-                    Attend Event
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.9 }}
-              >
-                <h3 className="font-semibold mb-4">Support</h3>
-                <div className="space-y-2">
-                  <div className="text-gray-400 hover:text-white cursor-pointer">
-                    Email Us
-                  </div>
-                </div>
-              </motion.div>
-            </div>
+            {/* Support */}
+            <motion.nav
+              aria-label="Support"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Email Us</a></li>
+              </ul>
+            </motion.nav>
           </div>
 
-          <motion.div
-            className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 2.0 }}
-          >
-            © 2025 PartyBank. All rights reserved.
-          </motion.div>
+          {/* Bottom bar */}
+          <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-400 text-sm">
+            <p>© {new Date().getFullYear()} PartyBank. All rights reserved.</p>
+            <div className="hidden lg:flex items-center gap-3 opacity-70">
+              <img src={floatingLogo} alt="" aria-hidden="true" className="w-24" />
+            </div>
+          </div>
         </div>
       </footer>
     </div>
