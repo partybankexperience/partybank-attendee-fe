@@ -74,21 +74,6 @@ const EventDetails: React.FC = () => {
     },
   };
 
-  // function handleNext() {
-  //   if (!selectedTicketId){
-  //     errorAlert("Error", "Please select a ticket first!");
-  //   return}
-  //   const user = Storage.getItem("user");
-  //   console.log(user, "user in event details");
-  //   // startCheckout(selectedTicketId,quantity)
-  //   if (!user) {
-  //     Storage.setItem("redirectPath", "/checkout");
-  //     setCheckoutStage("eventDetails");
-  //     navigate("/login");
-  //     // Storage.setItem("checkoutStage", "eventDetails");
-  //   } else navigate("/checkout");
-  // }
-console.log(eventDetail,'the event details')
   async function handleNext() {
     if (!selectedTicketId) {
       errorAlert("Error", "Please select a ticket first!");
@@ -139,12 +124,11 @@ console.log(eventDetail,'the event details')
       // errorAlert("Error", (err as Error).message || "Something went wrong");
     }
   }
-console.log(selectedTicketId,quantity,'selectedTicketId,quantity')
+
   async function getEventDetail() {
     setLoading(true);
     try {
       const res = await getEventBySlug(slug as string);
-      console.log(res);
       seteventDetail(res);
     } catch (error) {
     } finally {
@@ -167,7 +151,6 @@ console.log(selectedTicketId,quantity,'selectedTicketId,quantity')
       setHasPassed(now > start);
     }
   }, [eventDetail]);
-  console.log(hasPassed, "hasPassed");
   if (loading) {
     return (
       <HomeLayout>

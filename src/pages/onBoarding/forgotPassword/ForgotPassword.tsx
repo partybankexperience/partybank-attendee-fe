@@ -14,7 +14,7 @@ import {
   StyledTimerCard,
   usePaymentTimer,
 } from "../../../components/helpers/timer";
-import { useCheckoutLeaveGuards } from "../../checkout/CancelCheckout";
+import { useCancelCheckout } from "../../checkout/CancelCheckout";
 
 const ForgotPassword = () => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -33,7 +33,7 @@ const ForgotPassword = () => {
   const timeLeft = usePaymentTimer(endTime, () => {
     setEndTime(null);
   });
-
+  const { handleCancelCheckout, ModalForceComponent } = useCancelCheckout();
   const startTimer = (durationInMinutes: number) => {
     // Calculate the end time based on the input duration
     const targetTime = new Date(
@@ -48,21 +48,6 @@ const ForgotPassword = () => {
       setTimersInitialized(true);
     }
   }, [checkoutStage]);
-  useEffect(() => {
-    if (!timersInitialized) return; // Prevent running before timers are set
-    if (timeLeft === 0 && endTime === null) {
-      // Cancel the checkout process
-      // cancelCheckout()
-      // Remove the cart data from local storage
-      // reset()
-      // // Timer expired, redirect to the event details page
-      // navigate(`/event-details/${eventName}`);
-      useCheckoutLeaveGuards({
-        active: true,
-        backTo: `/event-details/${eventName}`,
-      });
-    }
-  }, [timeLeft, eventName, timersInitialized, endTime]);
   // Warn on refresh or back
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -128,7 +113,19 @@ const ForgotPassword = () => {
       setTimersInitialized(true);
     }
   }, [checkoutStage]);
-  console.log(timeLeft, "time left in forgot password", checkoutStage);
+
+  useEffect(() => {
+    if (!timersInitialized) return; // Prevent running before timers are set
+    if (timeLeft === 0 && endTime === null) {
+      // Cancel the checkout process
+      // cancelCheckout()
+      handleCancelCheckout(
+        `/event-details/${eventName}`,
+        "Session Timed Out",
+        "Your ticket hold has expired. Please restart the booking process."
+      );
+    }
+  }, [timeLeft, eventName, timersInitialized, endTime]);
   return (
     <LoginLayout>
       {/* <div className="grid gap-[10px] text-center md:text-left mt-[2vh] md:mt-[4vh]">
@@ -136,6 +133,7 @@ const ForgotPassword = () => {
         <p className="text-lightGrey font-normal text-sm">Enter your new password below.</p>
       </div> */}
       {/* Ticket Summary */}
+      {ModalForceComponent}
       {selectedTicketId && checkoutStage === "eventDetails" && (
         <div className="bg-faintPink p-4 rounded-xl mb-4  relative">
           <StyledTimerCard timeLeft={timeLeft} />

@@ -48,10 +48,6 @@ const TicketCard: React.FC<TicketCardProps> = ({
   // A simple utility to prevent the scrollbar from showing if not needed
   const perkContainerClass = perks.length > 3 ? "scrollbar-hide" : "";
 
-  // console.log(ticket, ticket?.purchasable && hasPassed, 'the truth')
-  // console.log(!hasPassed, 'hasPassed',ticket?.purchasable, 'the ticket', isSoldOut,'isSoldOut', available!=0,'available' )
-
-  // available!=0 && ticket?.purchasable && hasPassed &&
   return (
     <div
       onClick={() =>

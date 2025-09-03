@@ -19,7 +19,7 @@ import { formatTimer, usePaymentTimer } from "../../components/helpers/timer";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { formatPrice } from "../../components/helpers/numberFormatHelpers";
 import { useConfirmationStore } from "../../stores/confirmationStore";
-// import { cancelCheckout } from "../../containers/checkoutApi";
+
 const Checkout: React.FC = () => {
   // Animation variants
   const fadeInUp = {
@@ -27,7 +27,7 @@ const Checkout: React.FC = () => {
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" },
   };
-  const { handleCancelCheckout, ModalComponent} = useCancelCheckout();
+  const { handleCancelCheckout, ModalForceComponent} = useCancelCheckout();
 
   const [isLoading, setisLoading] = useState(false);
   const { startCheckout } = useCheckoutStore();
@@ -51,43 +51,11 @@ const Checkout: React.FC = () => {
       const targetTime = new Date(new Date().getTime() + durationInMinutes * 60 * 1000);
       setEndTime(targetTime);
     };
-  // async function handleCheckout() {
-  //   setisLoading(true);
-    
-  //   try {
-  //     if (!selectedTicketId) {
-  //       navigate(`/event-details/${eventName}`);
-  //       errorAlert("Error", "No ticket selected. Please go back!");
-  //       console.error("No ticket selected");
-  //       return;
-  //     }
-  //     if (!reservationId) {
-  //       navigate(`/event-details/${eventName}`);
-  //       return errorAlert("Error", "No reservation ID found. Please go back!");
-  //     }
-  //     const res = await startCheckout(reservationId);
-      
-  //     if (res?.paystackLink && ticket?.type === "paid") {
-  //       window.location.href = res.paystackLink;
-  //     } else if (ticket?.type === "free") {
-  //   setConfirmationDetails(eventDetail, ticket, quantity);
-  //   resetCheckout()
-  //   navigate("/confirmation");
-  // }
-  // useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-  //   } catch (error) {
-  //     console.log(error);
-  //     useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-  //     // navigate(`/event-details/${eventDetail?.slug}`)
-  //   } finally {
-  //     setisLoading(false);
-  //   }
-
-  // }
-  // const { ModalComponent } = useCheckoutLeaveGuards({
-  //   active: true,
-  //   backTo: `/event-details/${eventName}`,
-  // });
+// the leave guard modal for when the user tries to leave the checkout page
+  const { ModalComponent } = useCheckoutLeaveGuards({
+    active: true,
+    backTo: `/event-details/${eventName}`,
+  });
   async function handleCheckout() {
     setisLoading(true);
   
@@ -125,8 +93,12 @@ const Checkout: React.FC = () => {
   
     } catch (error) {
       console.error(error);
-      useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-      navigate(`/event-details/${eventName}`);
+      handleCancelCheckout(
+        `/event-details/${eventName}`,
+        "Oops! Something went wrong",
+        "We encountered an issue while processing your request. Please try again in a moment. You'll be redirected to the event page."
+      );
+      // navigate(`/event-details/${eventName}`);
     } finally {
       setisLoading(false);
     }
@@ -140,16 +112,15 @@ const Checkout: React.FC = () => {
       setTimersInitialized(true);
     }
   }, [checkoutStage])
-  // const [modalOpened, setmodalOpened] = useState(false)
+
   useEffect(() => {
     if (!timersInitialized) return; // Prevent running before timers are set
     if (timeLeft === 0&& endTime === null) {
-      // Cancel the checkout process
-      // useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-      handleCancelCheckout(`/event-details/${eventName}`)
+      // Cancel the checkout process when the timer hits zero
+      handleCancelCheckout(`/event-details/${eventName}`,'Session Timed Out','Your ticket hold has expired. Please restart the booking process.')
     }
   }, [timeLeft, eventName,timersInitialized,endTime]);
-  // useCancelOnLeave(eventName);
+
   useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
 
   if(!reservationId ){
@@ -176,6 +147,7 @@ const Checkout: React.FC = () => {
   return (
     <>
     {ModalComponent}
+    {ModalForceComponent}
       <HomeLayout>
         <div
           className=" bg-white py-2 px-4 lg:py-8 w-[95vw] md:w-[80vw] lg:w-[85vw] relative top-[-5rem]
