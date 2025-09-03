@@ -19,7 +19,7 @@ import { formatTimer, usePaymentTimer } from "../../components/helpers/timer";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { formatPrice } from "../../components/helpers/numberFormatHelpers";
 import { useConfirmationStore } from "../../stores/confirmationStore";
-import { cancelCheckout } from "../../containers/checkoutApi";
+// import { cancelCheckout } from "../../containers/checkoutApi";
 const Checkout: React.FC = () => {
   // Animation variants
   const fadeInUp = {
@@ -140,7 +140,7 @@ const Checkout: React.FC = () => {
       setTimersInitialized(true);
     }
   }, [checkoutStage])
-  const [modalOpened, setmodalOpened] = useState(false)
+  // const [modalOpened, setmodalOpened] = useState(false)
   useEffect(() => {
     if (!timersInitialized) return; // Prevent running before timers are set
     if (timeLeft === 0&& endTime === null) {

@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import { User, Ticket, Settings, LogOut, X } from "lucide-react";
 
 import HomeLayout from "../../components/layouts/HomeLayout";
-import ProfileComponent from "../Profile/ProfilePageComponent";
-import TicketManagement from "../Profile/Ticket";
-import Profile_Settings from "../Profile/Settings";
+import ProfileComponent from "./ProfilePageComponent";
+import TicketManagement from "./Ticket";
+import Profile_Settings from "./Settings";
+
 
 interface sideItemsType {
   icon: React.ElementType;
