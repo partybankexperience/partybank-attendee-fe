@@ -127,7 +127,7 @@ const HomeLayout = ({ children }: React.PropsWithChildren) => {
           className="hidden relative z-20 mt-[3rem] md:flex gap-[6px] text-[.9rem] items-center text-white"
           aria-label="Breadcrumb"
         >
-          <a href="/" className="text-grey400">Home</a>
+          <a href="/search" className="text-grey400">Home</a>
           <IoIosArrowForward className="text-[1.1rem]" />
           {/* {pathnames.length > 0 && <IoIosArrowForward className="text-[1.1rem]" />}
           {pathnames.map((name, index) => {
