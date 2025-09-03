@@ -88,7 +88,7 @@ const EventDetails: React.FC = () => {
   //     // Storage.setItem("checkoutStage", "eventDetails");
   //   } else navigate("/checkout");
   // }
-
+console.log(eventDetail,'the event details')
   async function handleNext() {
     if (!selectedTicketId) {
       errorAlert("Error", "Please select a ticket first!");
@@ -103,9 +103,12 @@ const EventDetails: React.FC = () => {
         // Step 1: check availability
         async () => {
           const res = await checkticketAvailability(selectedTicketId, quantity);
-          if (!res?.available)
-            errorAlert("Error", res.message || "Ticket is not available");
-          return res;
+          if (res?.available==0){
+            errorAlert("Error", "Ticket is not available") 
+            return
+          }else {
+            return res
+          }
         },
 
         // Step 2: create reservation
@@ -136,7 +139,7 @@ const EventDetails: React.FC = () => {
       // errorAlert("Error", (err as Error).message || "Something went wrong");
     }
   }
-
+console.log(selectedTicketId,quantity,'selectedTicketId,quantity')
   async function getEventDetail() {
     setLoading(true);
     try {

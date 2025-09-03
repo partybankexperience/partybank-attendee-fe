@@ -7,7 +7,7 @@ import HomeLayout from "../../components/layouts/HomeLayout";
 import { useCheckoutStore } from "../../stores/checkoutStore";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import { useTicketStore } from "../../stores/cartStore";
-import { useCheckoutLeaveGuards } from "./CancelCheckout";
+import { useCancelCheckout, useCheckoutLeaveGuards } from "./CancelCheckout";
 import { Storage } from "../../stores/InAppStorage";
 import {
   formatDate,
@@ -19,7 +19,7 @@ import { formatTimer, usePaymentTimer } from "../../components/helpers/timer";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { formatPrice } from "../../components/helpers/numberFormatHelpers";
 import { useConfirmationStore } from "../../stores/confirmationStore";
-
+import { cancelCheckout } from "../../containers/checkoutApi";
 const Checkout: React.FC = () => {
   // Animation variants
   const fadeInUp = {
@@ -27,6 +27,7 @@ const Checkout: React.FC = () => {
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" },
   };
+  const { handleCancelCheckout, ModalComponent} = useCancelCheckout();
 
   const [isLoading, setisLoading] = useState(false);
   const { startCheckout } = useCheckoutStore();
@@ -37,6 +38,7 @@ const Checkout: React.FC = () => {
   const eventName = Storage.getItem("eventName");
  const { checkoutStage } = useAuthStore();
   const navigate=useNavigate()
+
   // const redirect = Storage?.getItem("redirectPath") || null;
     const [endTime, setEndTime] = useState<Date | null>(null);
   const [timersInitialized, setTimersInitialized] = useState(false);
@@ -49,52 +51,102 @@ const Checkout: React.FC = () => {
       const targetTime = new Date(new Date().getTime() + durationInMinutes * 60 * 1000);
       setEndTime(targetTime);
     };
+  // async function handleCheckout() {
+  //   setisLoading(true);
+    
+  //   try {
+  //     if (!selectedTicketId) {
+  //       navigate(`/event-details/${eventName}`);
+  //       errorAlert("Error", "No ticket selected. Please go back!");
+  //       console.error("No ticket selected");
+  //       return;
+  //     }
+  //     if (!reservationId) {
+  //       navigate(`/event-details/${eventName}`);
+  //       return errorAlert("Error", "No reservation ID found. Please go back!");
+  //     }
+  //     const res = await startCheckout(reservationId);
+      
+  //     if (res?.paystackLink && ticket?.type === "paid") {
+  //       window.location.href = res.paystackLink;
+  //     } else if (ticket?.type === "free") {
+  //   setConfirmationDetails(eventDetail, ticket, quantity);
+  //   resetCheckout()
+  //   navigate("/confirmation");
+  // }
+  // useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+  //   } catch (error) {
+  //     console.log(error);
+  //     useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+  //     // navigate(`/event-details/${eventDetail?.slug}`)
+  //   } finally {
+  //     setisLoading(false);
+  //   }
+
+  // }
+  // const { ModalComponent } = useCheckoutLeaveGuards({
+  //   active: true,
+  //   backTo: `/event-details/${eventName}`,
+  // });
   async function handleCheckout() {
     setisLoading(true);
-    
+  
     try {
       if (!selectedTicketId) {
-        navigate(`/event-details/${eventName}`);
         errorAlert("Error", "No ticket selected. Please go back!");
-        console.error("No ticket selected");
+        navigate(`/event-details/${eventName}`);
         return;
       }
+  
       if (!reservationId) {
+        errorAlert("Error", "No reservation ID found. Please go back!");
         navigate(`/event-details/${eventName}`);
-        return errorAlert("Error", "No reservation ID found. Please go back!");
+        return;
       }
+  
       const res = await startCheckout(reservationId);
+  
+      // ✅ Paid ticket — skip checkout page, go straight to Paystack
+      if (ticket?.type === "paid" && res?.paystackLink) {
+        window.location.replace(res.paystackLink); // replace() prevents user from coming "back" to checkout page
+        return; // ⬅️ ensure nothing else runs
+      }
+  
+      // ✅ Free ticket — handle confirmation locally
+      if (ticket?.type === "free") {
+        setConfirmationDetails(eventDetail, ticket, quantity);
+        resetCheckout();
+        navigate("/confirmation");
+        return;
+      }
+  
+      // Fallback (unexpected case)
       
-      if (res?.paystackLink && ticket?.type === "paid") {
-        window.location.href = res.paystackLink;
-      } else if (ticket?.type === "free") {
-    setConfirmationDetails(eventDetail, ticket, quantity);
-    resetCheckout()
-    navigate("/confirmation");
-  }
-  useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+  
     } catch (error) {
-      console.log(error);
+      console.error(error);
       useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-      // navigate(`/event-details/${eventDetail?.slug}`)
+      navigate(`/event-details/${eventName}`);
     } finally {
       setisLoading(false);
     }
-
   }
+  
+
 
   useEffect(() => {
     if( checkoutStage === 'checkout' && selectedTicketId) {
-      startTimer(10); // Start the timer with 10 minutes
+      startTimer(.2); // Start the timer with 10 minutes
       setTimersInitialized(true);
     }
   }, [checkoutStage])
+  const [modalOpened, setmodalOpened] = useState(false)
   useEffect(() => {
     if (!timersInitialized) return; // Prevent running before timers are set
     if (timeLeft === 0&& endTime === null) {
       // Cancel the checkout process
-      useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-
+      // useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
+      handleCancelCheckout(`/event-details/${eventName}`)
     }
   }, [timeLeft, eventName,timersInitialized,endTime]);
   // useCancelOnLeave(eventName);
@@ -123,10 +175,11 @@ const Checkout: React.FC = () => {
   }
   return (
     <>
+    {ModalComponent}
       <HomeLayout>
         <div
           className=" bg-white py-2 px-4 lg:py-8 w-[95vw] md:w-[80vw] lg:w-[85vw] relative top-[-5rem]
-         rounded-2xl z-50 max-w-6xl mx-auto "
+         rounded-2xl z-40 max-w-6xl mx-auto "
         >
           <motion.div
             className="bg-white rounded-2xl shadow-lg overflow-hidden"

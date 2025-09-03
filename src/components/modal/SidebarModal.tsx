@@ -61,7 +61,7 @@ export const SidebarModal: React.FC<SidebarModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex"
+      className="fixed inset-0 z-40 flex"
       role="dialog"
       aria-modal="true"
       aria-labelledby="sidebar-modal-title"

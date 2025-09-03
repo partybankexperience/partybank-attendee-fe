@@ -80,7 +80,7 @@ const Home = () => {
   return (
     <HomeLayout>
 
-   <div className="bg-white rounded-lg min-h-[9rem] py-[1.6rem] px-[1.8rem] min-w-fit md:w-[67vw] mx-[10px] grid md:mx-auto relative top-[-10rem] md:top-[-4.5rem] z-50 gap-[20px] md:flex shadow-md items-end">
+   <div className="bg-white rounded-lg min-h-[9rem] py-[1.6rem] px-[1.8rem] min-w-fit md:w-[67vw] mx-[10px] grid md:mx-auto relative top-[-10rem] md:top-[-4.5rem] z-40 gap-[20px] md:flex shadow-md items-end">
     <DefaultInput 
         id="search" 
         label="Search" 

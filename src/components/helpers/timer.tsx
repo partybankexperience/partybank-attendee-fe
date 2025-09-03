@@ -69,7 +69,7 @@ export const StyledTimerCard = ({ timeLeft }: { timeLeft: number }) => {
     }
   
     return (
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-40">
         <div className="bg-white p-3 rounded-xl shadow-lg flex items-center space-x-2 transition-all duration-300 transform hover:scale-105">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#ef4444" className="w-6 h-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />

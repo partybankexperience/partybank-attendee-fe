@@ -13,7 +13,7 @@ import LandingPage from "./pages/LandingPage/LandingPage";
 import VerificationRoute from "./utils/verificationRoute";
 import ForgotPassword from "./pages/onBoarding/forgotPassword/ForgotPassword";
 import NotFound from "./pages/NotFound";
-import Profile from "./pages/Profile/ProfileLayout";
+import Profile from "./pages/profile/ProfileLayout";
 
 function App() {
   const location = useLocation();

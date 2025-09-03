@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { useCheckoutStore } from "../../stores/checkoutStore";
 import { useEffect } from "react";
 import { useTicketStore } from "../../stores/cartStore";
+import { useConfirmModal } from "./ConfirmLeavingCheckout";
 
 /**
  * useCheckoutLeaveGuards({ active, backTo, prompt })
@@ -10,6 +11,7 @@ import { useTicketStore } from "../../stores/cartStore";
  * - backTo: url to navigate to if user confirms leaving (e.g. event details)
  * - prompt: optional custom confirmation text
  */
+
 export function useCheckoutLeaveGuards({
   active,
   backTo,
@@ -19,10 +21,12 @@ export function useCheckoutLeaveGuards({
   backTo: string;
   prompt?: string;
 }) {
-  const navigate = useNavigate();
   const cancelCheckout = useCheckoutStore((s) => s.cancelCheckout); // regular API cancel
-  const cancelCheckoutBeacon = useCheckoutStore((s) => s.cancelCheckoutBeacon); // beacon cancel
+const cancelCheckoutBeacon = useCheckoutStore((s) => s.cancelCheckoutBeacon); // beacon cancel
+const navigate = useNavigate();
+
   const { reset } = useTicketStore();
+  const { confirm, ModalComponent } = useConfirmModal();
   useEffect(() => {
     if (!active) return;
 
@@ -36,8 +40,10 @@ export function useCheckoutLeaveGuards({
     };
 
     // 2) Back/Forward -> popstate
-    const onPopState = () => {
-      const ok = window.confirm(prompt);
+    const onPopState = async() => {
+      // const ok = window.confirm(prompt);
+      const ok= await confirm("Leaving now will cancel your checkout progress. Proceed?");
+      console.log("onPopState", ok);
       if (ok) {
         // user confirmed -> do normal (awaited) cancel then navigate
         cancelCheckout("user_navigated_back").finally(() => {
@@ -52,7 +58,7 @@ export function useCheckoutLeaveGuards({
     };
 
     // 3) Intercept same-origin anchor clicks (includes React Router <Link>)
-    const onDocumentClick = (e: MouseEvent) => {
+    const onDocumentClick = async (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
       const anchor = target.closest("a") as HTMLAnchorElement | null;
@@ -68,7 +74,10 @@ export function useCheckoutLeaveGuards({
 
       e.preventDefault();
 
-      const ok = window.confirm(prompt);
+      // const ok = window.confirm(prompt);
+      const ok= await confirm("Leaving now will cancel your checkout progress. Proceed?");
+      console.log("onPopState", ok);
+
       if (ok) {
         cancelCheckout("user_clicked_link").finally(() => {
           // we navigate using the anchor href to preserve expected behavior
@@ -98,5 +107,57 @@ export function useCheckoutLeaveGuards({
       window.removeEventListener("popstate", onPopState);
       document.removeEventListener("click", onDocumentClick);
     };
+    
   }, [active, backTo, prompt, navigate, cancelCheckout, cancelCheckoutBeacon]);
+  return { ModalComponent }
 }
+
+
+// export async function handleCancelCheckout(backTo: string,modalOpened:boolean,setModalOpened:React.Dispatch<React.SetStateAction<boolean>>) {
+//   const cancelCheckout = useCheckoutStore((s) => s.cancelCheckout); // regular API cancel
+// // const cancelCheckoutBeacon = useCheckoutStore((s) => s.cancelCheckoutBeacon); // beacon cancel
+// const navigate = useNavigate();
+
+//   const { reset } = useTicketStore();
+//   const { confirm} = useConfirmModal();
+//     const ok = await confirm("Your ticket hold has expired. Please restart the booking process.");
+// setModalOpened(true)
+//     if (ok) {
+//       // user confirmed -> do normal (awaited) cancel then navigate
+//       cancelCheckout("user_navigated_back").finally(() => {
+//         // reset the ticket state
+//         reset();
+//         navigate(backTo, { replace: true });
+//       });
+//     } else {
+//       // keep them on the page
+//       window.history.pushState(null, "", window.location.pathname);
+// setModalOpened(true)
+
+//     }
+
+//   }
+
+
+
+export function useCancelCheckout() {
+  const cancelCheckout = useCheckoutStore((s) => s.cancelCheckout);
+  const navigate = useNavigate();
+  const { reset } = useTicketStore();
+  const { confirm, ModalComponent } = useConfirmModal();
+
+  async function handleCancelCheckout(backTo: string) {
+    const ok = await confirm("Your ticket hold has expired. Please restart the booking process.");
+    if (ok) {
+      cancelCheckout("user_navigated_back").finally(() => {
+        reset();
+        navigate(backTo, { replace: true });
+      });
+    } else {
+      window.history.pushState(null, "", window.location.pathname);
+    }
+  }
+
+  return { handleCancelCheckout, ModalComponent };
+}
+

@@ -89,7 +89,7 @@ if (!eventDetailsC || !ticketsC) {
           <motion.div
             className="shadow-lg overflow-hidden bg-gray-50 rounded-2xl bg-clip-padding 
           backdrop-filter backdrop-blur-sm bg-opacity-10 border border-gray-100 relative 
-          top-[-8rem] z-50"
+          top-[-8rem] z-40"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}

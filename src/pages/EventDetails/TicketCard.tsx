@@ -1,17 +1,19 @@
 import { motion } from "framer-motion";
-import { FiUsers, FiShoppingBag } from "react-icons/fi";
+import { FiUsers, FiShoppingBag  } from "react-icons/fi";
+import { IoTicketSharp } from "react-icons/io5";
 
 interface Ticket {
   id: string;
   name: string;
   price: number;
-  isSoldOut?: boolean;
+  isSoldOut: boolean;
   perks: string[];
   groupSize: number;
   purchaseLimit: number;
   isUnlimited: boolean;
   purchasable: boolean; // Indicates if the ticket can be purchased
   type: string;
+  available:number
 }
 
 interface TicketCardProps {
@@ -36,20 +38,24 @@ const TicketCard: React.FC<TicketCardProps> = ({
   const {
     name,
     price,
-    isSoldOut,
     perks,
     groupSize,
     purchaseLimit,
     // isUnlimited,
+    available
   } = ticket;
 
   // A simple utility to prevent the scrollbar from showing if not needed
   const perkContainerClass = perks.length > 3 ? "scrollbar-hide" : "";
 
+  // console.log(ticket, ticket?.purchasable && hasPassed, 'the truth')
+  // console.log(!hasPassed, 'hasPassed',ticket?.purchasable, 'the ticket', isSoldOut,'isSoldOut', available!=0,'available' )
+
+  // available!=0 && ticket?.purchasable && hasPassed &&
   return (
     <div
       onClick={() =>
-        !isSoldOut && ticket?.purchasable && hasPassed && selectTicket()
+        available!=0&& !hasPassed&&ticket?.purchasable &&available!=null && selectTicket()
       }
       className={`relative  bg-white rounded-xl p-4 flex flex-col gap-3 transition-all duration-300 md:w-[20rem]
         ${
@@ -58,7 +64,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             : "border border-gray-200"
         }
         ${
-          isSoldOut || !ticket.purchasable || hasPassed
+          available===0 || !ticket.purchasable || hasPassed || available==null
             ? "opacity-50 cursor-not-allowed"
             : "cursor-pointer hover:shadow-md"
         }`}
@@ -77,7 +83,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             {/* Right side: Controls or Sold Out text */}
             <div className="flex items-center h-full flex-shrink-0">
               {isSelected &&
-                !isSoldOut &&
+                available!=0 &&
                 ticket.purchasable &&
                 ticket.type === "paid" && (
                   <motion.div
@@ -112,12 +118,16 @@ const TicketCard: React.FC<TicketCardProps> = ({
                   </motion.div>
                 )}
 
-              {isSoldOut ||
+              {(available==0||available==null &&
+                <span className="text-red-500 font-bold text-sm">Sold Out</span>
+              )||
                 (!ticket.purchasable && (
                   <span className="text-red-500 font-bold text-sm">
-                    {isSoldOut ? "Sold Out" : "Not purchasable"}
+                    {available==0 ||available==null ? "Sold Out" : "Not purchasable"}
+                    {/* {available==null && "Unavailable"} */}
                   </span>
                 ))}
+              
             </div>
           </div>
           <span className="text-sm font-semibold text-primary mt-1 red-hat-display">
@@ -132,6 +142,12 @@ const TicketCard: React.FC<TicketCardProps> = ({
                 <FiShoppingBag /> Max {purchaseLimit}
               </span>
             )}
+            {(available !== 0  && available!=null) &&  (ticket.purchasable && !hasPassed) && (
+    <span className="flex items-center gap-1 ">
+      <IoTicketSharp className="text-green-500" />
+      {available} left
+    </span>
+  )}
           </div>
         </div>
       </div>

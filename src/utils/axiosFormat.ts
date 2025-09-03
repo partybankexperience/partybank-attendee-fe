@@ -133,13 +133,37 @@ console.log(authStore.verificationToken,'verificationToken')
       });
   });
 };
-// ✅ Reusable pipeline runner
+// // ✅ Reusable pipeline runner
+// export async function runPipeline<T>(
+//   steps: ((input: T) => Promise<T>)[]
+// ): Promise<T> {
+//   let result: T | undefined = undefined;
+//   for (const step of steps) {
+//     result = await step(result as T); // pass result forward
+//   }
+//   return result as T;
+// }
+// ✅ Safe pipeline runner with early exit
 export async function runPipeline<T>(
-  steps: ((input: T) => Promise<T>)[]
-): Promise<T> {
+  steps: ((input: T | undefined) => Promise<T | undefined>)[]
+): Promise<T | undefined> {
   let result: T | undefined = undefined;
+
   for (const step of steps) {
-    result = await step(result as T); // pass result forward
+    try {
+      const next = await step(result);
+
+      // If step returns undefined, treat it as "stop here"
+      if (next === undefined) {
+        return result; // exit early with last successful result
+      }
+
+      result = next;
+    } catch (err) {
+      // Propagate error upward — pipeline halts immediately
+      throw err;
+    }
   }
-  return result as T;
+
+  return result;
 }
