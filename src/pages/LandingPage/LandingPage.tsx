@@ -412,7 +412,7 @@ const PartyBankLanding = () => {
 
           {/* Bottom bar */}
           <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-400 text-sm">
-            <p>© {new Date().getFullYear()} PartyBank. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Partybank. All rights reserved.</p>
             <div className="hidden lg:flex items-center gap-3 opacity-70">
               <img src={floatingLogo} alt="" aria-hidden="true" className="w-24" />
             </div>

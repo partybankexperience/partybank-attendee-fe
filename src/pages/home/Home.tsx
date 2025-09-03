@@ -2,10 +2,27 @@ import DefaultButton from "../../components/buttons/DefaultButton";
 import EventCard from "../../components/cards/EventCard";
 import DefaultInput from "../../components/inputs/DefaultInput";
 import HomeLayout from "../../components/layouts/HomeLayout";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { CiSearch } from "react-icons/ci";
 import { getEvents } from "../../containers/eventsApi";
 import EventCardSkeleton from "../../components/common/LoadingSkeleton";
+
+const normalizeDate = (v?: string | null): string => {
+  // Input type="date" already gives "YYYY-MM-DD"; we just normalize/guard
+  if (!v) return "";
+  // keep first 10 chars to be safe (YYYY-MM-DD)
+  return v.slice(0, 10);
+};
+
+const buildDateRange = (fromRaw: string, toRaw: string) => {
+  const from = normalizeDate(fromRaw);
+  const to = normalizeDate(toRaw);
+  if (from && to && from > to) {
+    // swap if inverted
+    return { from: to, to: from };
+  }
+  return { from, to };
+};
 
 const Home = () => {
   const [search, setSearch] = useState("");
@@ -14,8 +31,8 @@ const Home = () => {
   const [toDate, setToDate] = useState("");
 
   const [events, setEvents] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);       // initial load / refetch
-  const [isAppending, setIsAppending] = useState(false);   // loading more pages
+  const [isLoading, setIsLoading] = useState(false);     // initial load / refetch
+  const [isAppending, setIsAppending] = useState(false); // loading more pages
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(12);
 
@@ -24,6 +41,12 @@ const Home = () => {
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  // Memoized, sanitized dates (and auto-swap if needed)
+  const { from: fromISO, to: toISO } = useMemo(
+    () => buildDateRange(fromDate, toDate),
+    [fromDate, toDate]
+  );
+
   // Fetch events
   async function fetchEvents(currentPage = 1, append = false) {
     if (append) setIsAppending(true);
@@ -31,15 +54,15 @@ const Home = () => {
 
     try {
       const res = await getEvents(
-        search,
-        selectState === "All" ? "" : selectState,
+        search || "",                               // ok; function trims/omits
+        selectState === "All" ? "" : selectState,   // ok; function trims/omits
         currentPage,
         perPage,
-        fromDate,
-        toDate
+        fromISO || undefined,
+        toISO || undefined
       );
 
-      // API shape from your sample:
+      // Expected API shape (from your sample):
       // { data: [...], page, per_page, total, totalPages }
       const data = res?.data ?? [];
       const apiTotal = res?.total ?? res?.totalCount ?? 0;
@@ -51,7 +74,7 @@ const Home = () => {
       setTotalPages(apiTotalPages);
 
       if (append) {
-        setEvents((prev) => [...prev, ...data]);
+        setEvents(prev => [...prev, ...data]);
       } else {
         setEvents(data);
       }
@@ -67,13 +90,15 @@ const Home = () => {
   useEffect(() => {
     setPage(1);
     setEvents([]);
+    // If you want to require both dates before filtering, you could gate with:
+    // if ((fromISO && toISO) || (!fromISO && !toISO) || (fromISO && !toISO) || (!fromISO && toISO)) { ... }
     fetchEvents(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, selectState, fromDate, toDate, perPage]);
+  }, [search, selectState, fromISO, toISO, perPage]);
 
   // Fetch when page changes (append)
   useEffect(() => {
-    if (page === 1) return; // already fetched in the filter effect
+    if (page === 1) return; // page 1 handled above
     fetchEvents(page, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
@@ -116,7 +141,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-5 md:px-8 lg:px-10 xl:px-12">
           <form
             onSubmit={(e) => {
-              e.preventDefault();
+              e.preventDefault(); // no page reload
               setPage(1);
               setEvents([]);
               fetchEvents(1, false);
@@ -147,7 +172,12 @@ const Home = () => {
               id="fromDate"
               label="From"
               value={fromDate}
-              setValue={setFromDate}
+              setValue={(val: string) => {
+                const v = normalizeDate(val);
+                setFromDate(v);
+                // optional UX: auto-correct toDate if user picks an earlier fromDate
+                if (toDate && v && v > toDate) setToDate(v);
+              }}
               style="!w-full"
               type="date"
             />
@@ -156,7 +186,12 @@ const Home = () => {
               id="toDate"
               label="To"
               value={toDate}
-              setValue={setToDate}
+              setValue={(val: string) => {
+                const v = normalizeDate(val);
+                setToDate(v);
+                // optional UX: auto-correct fromDate if user picks an earlier toDate
+                if (fromDate && v && fromDate > v) setFromDate(v);
+              }}
               style="!w-full"
               type="date"
             />
@@ -170,6 +205,13 @@ const Home = () => {
               Search
             </DefaultButton>
           </form>
+
+          {/* Optional small helper for invalid range (after auto-swap this should rarely show) */}
+          {fromDate && toDate && fromDate > toDate && (
+            <p className="max-w-5xl mx-auto mt-2 text-sm text-red-600">
+              Your date range looks inverted. We’ll use a corrected range automatically.
+            </p>
+          )}
         </div>
       </section>
 
@@ -181,6 +223,11 @@ const Home = () => {
             <p className="text-[#918F90] text-sm">
               Showing <span className="font-medium">{events.length}</span> of{" "}
               <span className="font-medium">{totalCount}</span> event{totalCount === 1 ? "" : "s"}
+              {fromISO || toISO ? (
+                <span className="ml-2 text-gray-500">
+                  ({fromISO || "…"} — {toISO || "…"})
+                </span>
+              ) : null}
             </p>
 
             <div className="flex items-center gap-2">
@@ -225,7 +272,6 @@ const Home = () => {
                 ))}
           </div>
 
-          {/* Loader / Load More / Sentinel */}
           {/* Appending spinner */}
           {isAppending && (
             <div className="flex justify-center py-8">
@@ -233,7 +279,7 @@ const Home = () => {
             </div>
           )}
 
-          {/* Load more button (fallback / optional) */}
+          {/* Load more (fallback) */}
           {!isLoading && !isAppending && events.length > 0 && page < totalPages && (
             <div className="flex justify-center py-6">
               <DefaultButton
