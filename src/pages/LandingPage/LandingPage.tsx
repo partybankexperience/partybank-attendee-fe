@@ -74,7 +74,10 @@ const PartyBankLanding = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <DefaultButton onClick={() => navigate("/login")} className={btnMd}>
+            <DefaultButton
+              onClick={() => window.open("https://preview.thepartybank.com", "_blank", "noopener,noreferrer")}
+              className={btnMd}
+            >
               Create Events
             </DefaultButton>
           </motion.div>
@@ -313,7 +316,7 @@ const PartyBankLanding = () => {
 
           <motion.a
             href="https://example.com"
-            className="inline-flex items-center justify-center mt-6 bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
+            className="inline-flex items-center justify-center mt-15 bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold
                        hover:bg-red-600 transition-all duration-300 shadow-lg hover:shadow-xl
                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600"
             initial={{ opacity: 0, y: 12 }}
