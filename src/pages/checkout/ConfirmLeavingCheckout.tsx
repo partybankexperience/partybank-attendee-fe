@@ -44,3 +44,44 @@ export function useConfirmModal() {
 
   return { confirm, ModalComponent };
 }
+
+
+export function useForceLeaveModal() {
+    const [isOpen, setIsOpen] = useState(false);
+    const [message, setMessage] = useState("");
+    const [title, setTitle] = useState("");
+    const resolveRef = useRef<((ok: boolean) => void) | null>(null);
+  
+    const confirm = useCallback((msg: string,title:string) => {
+      setMessage(msg);
+      setTitle(title);
+      setIsOpen(true);
+      return new Promise<boolean>((resolve) => {
+        resolveRef.current = resolve;
+      });
+    }, []);
+  
+    const handleClose = (ok: boolean) => {
+      setIsOpen(false);
+      resolveRef.current?.(ok);
+      resolveRef.current = null;
+    };
+  
+    const ModalForceComponent = (
+      <Modal isOpen={isOpen} onClose={() => handleClose(true)}>
+        <h2 className="font-semibold  text-[1.5rem] mb-4 text-center">{title}</h2>
+      <p className="mb-6 text-center ">{message}</p>
+      <div className="flex justify-center">
+        <button
+          className="px-4 py-2 bg-red-600 text-white rounded"
+          onClick={() => handleClose(true)}
+        >
+          Back to Tickets
+        </button>
+      </div>
+        
+      </Modal>
+    );
+  
+    return { confirm, ModalForceComponent };
+  }
