@@ -10,7 +10,7 @@ import { successAlert } from "../../components/alerts/ToastService";
 import { useTicketStore } from "../../stores/cartStore";
 import { Storage } from "../../stores/InAppStorage";
 import { StyledTimerCard, usePaymentTimer } from "../../components/helpers/timer";
-import { useCheckoutLeaveGuards } from "../checkout/CancelCheckout";
+import { useCancelCheckout} from "../checkout/CancelCheckout";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -38,6 +38,7 @@ const SignUp = () => {
   const [endTime, setEndTime] = useState<Date | null>(null);
 const [timersInitialized, setTimersInitialized] = useState(false);
   const eventName=Storage.getItem('eventName')
+  const { handleCancelCheckout, ModalForceComponent} = useCancelCheckout();
   const timeLeft = usePaymentTimer(endTime, () => {
     setEndTime(null);
   });
@@ -135,17 +136,12 @@ const [timersInitialized, setTimersInitialized] = useState(false);
       if (!timersInitialized) return; // Prevent running before timers are set
       if (timeLeft === 0&& endTime === null) {
         // Cancel the checkout process
-        useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-        // cancelCheckout()
-        // // Remove the cart data from local storage
-        // reset()
-        // // Timer expired, redirect to the event details page
-        // navigate(`/event-details/${eventName}`);
-  
+        handleCancelCheckout(`/event-details/${eventName}`,'Session Timed Out','Your ticket hold has expired. Please restart the booking process.')
       }
     }, [timeLeft, eventName,timersInitialized,endTime]);
   return (
     <LoginLayout>
+      {ModalForceComponent}
       <form className="grid mt-[2vh] md:mt-[0vh] gap-[2vh] h-fit " onSubmit={handleRegisterUser}>
     <div className="grid gap-[10px] text-center md:text-left">
       <h1 className="text-black text-3xl font-semibold">Create an Account</h1>
