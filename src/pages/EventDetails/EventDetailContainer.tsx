@@ -129,7 +129,6 @@ const EventDetails: React.FC = () => {
     setLoading(true);
     try {
       const res = await getEventBySlug(slug as string);
-      console.log(res);
       seteventDetail(res);
     } catch (error) {
     } finally {
@@ -152,7 +151,6 @@ const EventDetails: React.FC = () => {
       setHasPassed(now > start);
     }
   }, [eventDetail]);
-  console.log(hasPassed, "hasPassed");
   if (loading) {
     return (
       <HomeLayout>

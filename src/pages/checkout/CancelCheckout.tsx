@@ -43,7 +43,6 @@ const navigate = useNavigate();
     const onPopState = async() => {
       // const ok = window.confirm(prompt);
       const ok= await confirm("Leaving now will cancel your checkout progress. Proceed?");
-      console.log("onPopState", ok);
       if (ok) {
         // user confirmed -> do normal (awaited) cancel then navigate
         cancelCheckout("user_navigated_back").finally(() => {
@@ -76,7 +75,6 @@ const navigate = useNavigate();
 
       // const ok = window.confirm(prompt);
       const ok= await confirm("Leaving now will cancel your checkout progress. Proceed?");
-      console.log("onPopState", ok);
 
       if (ok) {
         cancelCheckout("user_clicked_link").finally(() => {

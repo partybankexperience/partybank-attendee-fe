@@ -57,7 +57,6 @@ const Confirmation = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  console.log({ticketsC,eventDetailsC,quantityC},'the details');
 
 if (!eventDetailsC || !ticketsC) {
     return (

@@ -73,7 +73,6 @@ const EmailVerification = () => {
         // setUser(res);
         setVerificationToken(res.accessToken);
         navigate('/signup', { state: { email } })
-      console.log(res, "Login Response");
     } catch (error:any) {
         
     }

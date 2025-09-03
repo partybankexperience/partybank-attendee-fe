@@ -94,7 +94,6 @@ const Login = () => {
     try {
       const res = await emailExists(email);
       setemailExist(res.exists);
-      console.log("emailExist2", emailExist);
 
       if (!res.exists) {
         // Send OTP
@@ -110,7 +109,6 @@ const Login = () => {
         // Prepare countdown value
         setCountdown(10);
         // 🔑 Start countdown *only after loading ends and OTP was sent*
-        console.log("emailExist", emailExist);
         if (!emailExist) {
           timerRef.current = setInterval(() => {
             setCountdown((prev) => {
@@ -132,7 +130,6 @@ const Login = () => {
     }
   };
 
-  console.log(isLoading);
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (emailError) {
@@ -155,7 +152,6 @@ const Login = () => {
         // Storage.setItem("checkoutStage", "signUp");
         setCheckoutStage("checkout");
         if (redirect && checkoutStage === "eventDetails") {
-          console.log("Redirecting to:", redirect);
           Storage.removeItem("redirectPath");
           navigate(redirect);
         }
@@ -206,7 +202,6 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-  console.log(timeLeft, checkoutStage);
 
   return (
     <LoginLayout>

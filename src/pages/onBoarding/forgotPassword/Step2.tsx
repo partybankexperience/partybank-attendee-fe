@@ -34,7 +34,6 @@ const StepTwo = ({ otp, setOtp, onSubmit, isLoading}:any) => {
       setisResendOTPLoading(false);
     }}
   const encryptedEmail = email ? maskEmail(email) : "";
-  console.log(timer, "timer in step 2");
   return (
     <form onSubmit={onSubmit} className="grid mt-[2vh] md:mt-[4vh] gap-[3vh] h-fit">
       <div className="grid gap-[10px] text-center md:text-left">

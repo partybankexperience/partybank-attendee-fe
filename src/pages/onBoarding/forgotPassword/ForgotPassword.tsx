@@ -128,7 +128,6 @@ const ForgotPassword = () => {
       setTimersInitialized(true);
     }
   }, [checkoutStage]);
-  console.log(timeLeft, "time left in forgot password", checkoutStage);
   return (
     <LoginLayout>
       {/* <div className="grid gap-[10px] text-center md:text-left mt-[2vh] md:mt-[4vh]">
