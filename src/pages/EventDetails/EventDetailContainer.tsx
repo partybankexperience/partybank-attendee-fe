@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Calendar, Clock } from "lucide-react";
 import xtasyGroove from "../../assets/images/XtasyGroove.png";
@@ -9,25 +9,18 @@ import HomeLayout from "../../components/layouts/HomeLayout";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import { useTicketStore } from "../../stores/cartStore";
 import { errorAlert } from "../../components/alerts/ToastService";
-import {
-  checkticketAvailability,
-  getEventBySlug,
-} from "../../containers/eventsApi";
+import { checkticketAvailability, getEventBySlug } from "../../containers/eventsApi";
 import { EventDetailsSkeleton } from "../../components/common/LoadingSkeleton";
-import {
-  formatDate,
-  formatTimeRange,
-} from "../../components/helpers/dateTimeHelpers";
+import { formatDate, formatTimeRange } from "../../components/helpers/dateTimeHelpers";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { runPipeline } from "../../utils/axiosFormat";
 import { useCheckoutStore } from "../../stores/checkoutStore";
-// import { useCheckoutStore } from "../../stores/checkoutStore";
-// import { createHash } from "crypto"; // Node.js; if browser, use SubtleCrypto
+
 const EventDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { setCheckoutStage } = useAuthStore();
   const { slug } = useParams();
-  // const { startCheckout } = useCheckoutStore();
+
   const {
     selectedTicketId,
     quantity,
@@ -36,78 +29,55 @@ const EventDetails: React.FC = () => {
     decreaseQuantity,
     getTotal,
   } = useTicketStore();
-  const { createAndStoreReservation } = useCheckoutStore();
-  const [eventDetail, seteventDetail] = useState<any>("");
 
-  // const [isOpen, setIsOpen] = useState<boolean>(false)
+  const { createAndStoreReservation } = useCheckoutStore();
+  const [eventDetail, setEventDetail] = useState<any>(null);
+  const [hasPassed, setHasPassed] = useState(false);
 
   const navigate = useNavigate();
 
-  async function getIdentity(user?: { id?: string }) {
-    if (user?.id) {
-      return { userId: user.id };
-    }
-
-    // fallback to ipHash
-    const { ip } = await fetch("https://api64.ipify.org?format=json").then(
-      (r) => r.json()
-    );
-
-    // hash the IP (MD5 as in your example, but could be SHA256)
-    // const ipHash = createHash("md5").update(ip).digest("hex");
-
-    return { ipHash: ip };
-  }
-
-  // Animation variants
   const fadeInUp = {
-    initial: { opacity: 0, y: 30 },
+    initial: { opacity: 0, y: 24 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" },
   };
 
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+  async function getIdentity(user?: { id?: string }) {
+    if (user?.id) return { userId: user.id };
+    try {
+      const { ip } = await fetch("https://api64.ipify.org?format=json").then((r) => r.json());
+      return { ipHash: ip };
+    } catch {
+      return { ipHash: "anonymous" };
+    }
+  }
 
   async function handleNext() {
     if (!selectedTicketId) {
       errorAlert("Error", "Please select a ticket first!");
       return;
     }
-
     const user = Storage.getItem("user");
-    // const identity = user?.id ?? (await fetch("https://api64.ipify.org?format=json").then(r => r.json()).then(d => d.ip));
     const identity = await getIdentity(user);
+
     try {
       await runPipeline([
-        // Step 1: check availability
         async () => {
           const res = await checkticketAvailability(selectedTicketId, quantity);
-          if (res?.available==0){
-            errorAlert("Error", "Ticket is not available") 
-            return
-          }else {
-            return res
+          if (!res || res?.available === 0) {
+            errorAlert("Error", "Ticket is not available");
+            throw new Error("Ticket unavailable");
           }
+          return res;
         },
-
-        // Step 2: create reservation
         async () => {
-          const reservation = await createAndStoreReservation(
-            eventDetail.id, // from props/context
+          return await createAndStoreReservation(
+            eventDetail.id,
             selectedTicketId,
             quantity,
             identity
           );
-          return reservation;
         },
-
-        // Step 3: navigate
         async () => {
           if (!user) {
             Storage.setItem("redirectPath", "/checkout");
@@ -120,37 +90,57 @@ const EventDetails: React.FC = () => {
         },
       ]);
     } catch (err) {
-      console.error("Pipeline failed:", err);
-      // errorAlert("Error", (err as Error).message || "Something went wrong");
+      console.error("Checkout pipeline aborted:", err);
     }
   }
 
-  async function getEventDetail() {
+  async function loadEvent() {
     setLoading(true);
     try {
       const res = await getEventBySlug(slug as string);
-      seteventDetail(res);
-    } catch (error) {
+      setEventDetail(res);
     } finally {
       setLoading(false);
     }
   }
-  useEffect(() => {
-    getEventDetail();
-  }, []);
-  const [hasPassed, setHasPassed] = useState(false);
 
   useEffect(() => {
+    loadEvent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
+  useEffect(() => {
+    if (!eventDetail) return;
     const now = new Date();
-    const start = new Date(eventDetail.startDate);
-    const end = eventDetail.endDate ? new Date(eventDetail.endDate) : undefined;
-
-    if (end) {
-      setHasPassed(now > end);
-    } else {
-      setHasPassed(now > start);
-    }
+    const start = eventDetail.startDate ? new Date(eventDetail.startDate) : null;
+    const end = eventDetail.endDate ? new Date(eventDetail.endDate) : null;
+    setHasPassed(end ? now > end : start ? now > start : false);
   }, [eventDetail]);
+
+  const sortedTickets = useMemo(() => {
+    const list: any[] = Array.isArray(eventDetail?.tickets) ? [...eventDetail.tickets] : [];
+    const statusRank = (t: any) => {
+      const soldOut = t?.available === 0 || t?.available == null;
+      const buyable = t?.purchasable && !soldOut;
+      if (buyable) return 0;
+      if (soldOut) return 1;
+      return 2;
+    };
+    const getPrice = (t: any) => (t?.type === "paid" ? Number(t.price) || 0 : 0);
+
+    return list.sort((a, b) => {
+      const ra = statusRank(a);
+      const rb = statusRank(b);
+      if (ra !== rb) return ra - rb;
+      if (ra === 0) {
+        const pa = getPrice(a);
+        const pb = getPrice(b);
+        if (pa !== pb) return pa - pb;
+      }
+      return 0;
+    });
+  }, [eventDetail?.tickets]);
+
   if (loading) {
     return (
       <HomeLayout>
@@ -159,12 +149,11 @@ const EventDetails: React.FC = () => {
     );
   }
 
-  // Handle the case where the event is not found
   if (!eventDetail) {
     return (
       <HomeLayout>
-        <div className="flex items-center justify-center min-h-[80vh] text-center">
-          <p className="text-xl font-bold text-red-500">Event not found.</p>
+        <div className="flex items-center justify-center min-h-[50vh] text-center">
+          <p className="text-lg md:text-xl font-semibold text-red-500">Event not found.</p>
         </div>
       </HomeLayout>
     );
@@ -172,137 +161,158 @@ const EventDetails: React.FC = () => {
 
   return (
     <HomeLayout>
-      <div
-        className="min-h-[80vh]  mx-auto md:px-[2rem] md:py-8 lg:py-[2rem] bg-white w-[90vw] rounded-xl
-              relative top-[-5rem] z-20 md:shadow-md grid  md:grid-cols-[3fr_1.5fr] gap-8 items-start justify-between "
-      >
-        <div className="grid gap-8 lg:grid-cols-[1fr_2fr]">
-          <motion.div
-            // className="space-y-6 grid lg:grid-cols-2 gap-4 items-start justify-center"
-            className="space-y-6 gap-4 items-start justify-center w-full"
-            // className="space-y-6 grid lg:grid-cols-2 gap-4 items-start justify-center"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
-            {/* Event Image */}
-            <motion.div
-              className="relative rounded-xl overflow-hidden shadow-2xl"
-              variants={fadeInUp}
-            >
-              <div>
-                <img
-                  src={eventDetail?.bannerImage || xtasyGroove}
-                  alt="Xtasy Groove Event"
-                  className="w-full h-auto max-h-[30rem] object-cover rounded-xl"
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-          {/* Event Info */}
-          <motion.div
-            className="bg-white/10 backdrop-blur-lg rounded-xl px-6 text-black"
-            variants={fadeInUp}
-          >
-            <motion.h2
-              className="text-[2.2rem]  font-bold mb-4 "
-              variants={fadeInUp}
-            >
-              {eventDetail.name}
-            </motion.h2>
+      <div className="relative -mt-[4.5rem] z-20">
+        <div className="max-w-7xl mx-auto px-5 md:px-8 lg:px-10 xl:px-12">
+          <div className="bg-white rounded-2xl shadow-md p-4 md:p-6 lg:p-8">
+            {/* Outer grid: keep two columns from md; narrower panel on md for iPad, wider on lg+ */}
+            <div className="grid gap-8 lg:gap-10 md:grid-cols-[minmax(0,1fr)_380px] lg:grid-cols-[minmax(0,1fr)_420px]">
+              {/* LEFT: image + details */}
+              <section className="min-w-0">
+                {/* Mobile image */}
+                <motion.div
+                  className="md:hidden relative rounded-[20px] overflow-hidden border border-[#E5E7EB] mb-4"
+                  variants={fadeInUp}
+                  initial="initial"
+                  animate="animate"
+                >
+                  <img
+                    src={eventDetail?.bannerImage || xtasyGroove}
+                    alt={eventDetail?.name || "Event image"}
+                    className="w-full h-auto object-cover"
+                  />
+                </motion.div>
 
-            <div className="space-y-3 mb-6 text-[#231F20] font-semibold red-hat-display">
-              <motion.div
-                className="flex items-center gap-3"
-                variants={fadeInUp}
-              >
-                <Calendar className="w-5 h-5 text-primary/80" />
-                <span className="r">
-                  {" "}
-                  {formatDate(eventDetail?.startDate)}{" "}
-                  {eventDetail.endDate &&
-                    `- ${formatDate(eventDetail.endDate)}`}{" "}
-                </span>
-              </motion.div>
-              <motion.div
-                className="flex items-center gap-3"
-                variants={fadeInUp}
-              >
-                <Clock className="w-5 h-5 text-primary/80" />
-                <span>
-                  {formatTimeRange(eventDetail.startTime, eventDetail.endTime)}
-                </span>
-              </motion.div>
-              <motion.div
-                className="flex items-center gap-3"
-                variants={fadeInUp}
-              >
-                <MapPin className="w-5 h-5 text-primary/80" />
-                <span> {eventDetail.venueName || "TBD"}</span>
-              </motion.div>
+                {/* Inner layout: stack on md (iPad), split image/details only from xl up */}
+                <div className="grid xl:grid-cols-[360px_minmax(0,1fr)] gap-4 md:gap-5 lg:gap-6 items-start">
+                  {/* Sticky image on web/tablet */}
+                  <aside className="hidden md:block md:sticky md:top-6 md:self-start md:mb-4 xl:mb-0 xl:mr-3">
+                    <div className="relative">
+                      <img
+                        src={eventDetail?.bannerImage || xtasyGroove}
+                        alt={eventDetail?.name || "Event image"}
+                        className="w-full h-auto object-cover rounded-[20px] border border-[#E5E7EB]"
+                        loading="eager"
+                      />
+                    </div>
+                  </aside>
+
+                  {/* Details */}
+                  <motion.article
+                    variants={fadeInUp}
+                    initial="initial"
+                    animate="animate"
+                    className="min-w-0"
+                  >
+                    <h1 className="text-[1.75rem] md:text-[2rem] font-bold tracking-tight text-gray-900 mb-4">
+                      {eventDetail.name}
+                    </h1>
+
+                    <div className="space-y-3 mb-6 text-gray-800 font-medium">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-5 h-5 text-primary/80 shrink-0" />
+                        <span>
+                          {formatDate(eventDetail?.startDate)}
+                          {eventDetail.endDate && ` - ${formatDate(eventDetail.endDate)}`}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-primary/80 shrink-0" />
+                        <span>{formatTimeRange(eventDetail.startTime, eventDetail.endTime)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-5 h-5 text-primary/80 shrink-0" />
+                        <span>{eventDetail.venueName || "TBD"}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                        About Event
+                      </h2>
+                      <p className="text-[#6B7280] leading-relaxed">
+                        {eventDetail.description ||
+                          "Join us for an unforgettable experience—great music, great people, and the best vibes. Don’t miss it!"}
+                      </p>
+                    </div>
+                  </motion.article>
+                </div>
+              </section>
+
+              {/* RIGHT: Ticket panel (fits viewport; list scrolls vertically only) */}
+              <aside className="md:sticky md:top-6 md:self-start">
+                <motion.div
+                  className="
+                    bg-gradient-to-b from-[#FFF2F4] via-[#FFF2F4] to-white
+                    rounded-2xl shadow-lg p-5 md:p-5
+                    md:flex md:flex-col
+                    md:max-h-[calc(100vh-16.5rem)]   /* tune if your header height differs */
+                    min-h-[420px]
+                  "
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.05 }}
+                >
+                  {/* Header */}
+                  <div className="mb-3 shrink-0">
+                    <h3 className="text-[1.15rem] md:text-[1.25rem] font-semibold text-[#231F20]">
+                      {hasPassed ? "View Tickets" : "Get Tickets"}
+                    </h3>
+                    <p className="text-[#979595] text-sm md:text-[0.95rem]">
+                      {hasPassed ? "Event has concluded" : "Which ticket type are you going for?"}
+                    </p>
+                  </div>
+
+                  {/* Tickets */}
+                  <div
+                    className="
+                      mt-2 space-y-4 flex-1
+                      overflow-y-auto overflow-x-hidden pr-1
+                      [scrollbar-width:thin]
+                      [&::-webkit-scrollbar]:w-2
+                      [&::-webkit-scrollbar-thumb]:rounded-full
+                      [&::-webkit-scrollbar-thumb]:bg-gray-300
+                    "
+                  >
+                    {sortedTickets.length === 0 && (
+                      <div className="text-gray-500 text-sm">No tickets available.</div>
+                    )}
+
+                    {sortedTickets.map((ticket) => (
+                      <div key={ticket.id} className="w-full [&>*]:!w-full">
+                        <TicketCard
+                          isSelected={selectedTicketId === ticket.id}
+                          quantity={selectedTicketId === ticket.id ? quantity : 0}
+                          selectTicket={() => selectTicket(ticket, slug as string, eventDetail)}
+                          increaseQuantity={() => increaseQuantity(ticket.purchaseLimit)}
+                          decreaseQuantity={decreaseQuantity}
+                          ticket={ticket}
+                          hasPassed={hasPassed}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer */}
+                  {!hasPassed && (
+                    <div className="pt-5 mt-3 border-t border-gray-200 shrink-0">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="font-semibold text-gray-900">Total</span>
+                        <span className="text-[1.05rem] md:text-[1.15rem] font-bold text-primary">
+                          {getTotal()}
+                        </span>
+                      </div>
+                      <DefaultButton className="!w-full" onClick={handleNext}>
+                        Next
+                      </DefaultButton>
+                    </div>
+                  )}
+                </motion.div>
+              </aside>
             </div>
-
-            <motion.div variants={fadeInUp}>
-              <h3 className="text-xl font-semibold mb-3 text-black">
-                About Event
-              </h3>
-              <p className="text-[#918F90] leading-relaxed font-medium red-hat-display">
-                {eventDetail.description ||
-                  "Join us for an unforgettable night of music, dance, and celebration at Xtasy Groove! Experience the best DJs, live performances, and a vibrant atmosphere that will keep you dancing all night long. Don't miss out on the ultimate party of the year!"}
-              </p>
-            </motion.div>
-          </motion.div>
-        </div>
-        {/* Ticket Purchase Section */}
-        <motion.div
-          className="w-full  ml-auto  bg-gradient-to-b from-[#FFF2F4] from-0% via-[#FFF2F4] via-70% to-[#ffffff]/50 to-90%
-              rounded-xl shadow-2xl 
-              p-6  top-8"
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-        >
-          <h3 className="text-[1.3rem] font-semibold text-[#231F20] mb-2 red-hat-display">
-            {hasPassed ? "View Tickets" : "Get Tickets"}
-          </h3>
-          <p className="text-[#979595] text-[1rem] red-hat-display">
-            {hasPassed
-              ? "Event has concluded"
-              : "Which ticket type are you going for?"}
-          </p>
-
-          <div className="space-y-4 mb-8 max-h-[50vh] overflow-auto min-w-full pt-5 ">
-            {eventDetail.tickets.map((ticket: any) => (
-              <TicketCard
-                key={ticket.id}
-                isSelected={selectedTicketId === ticket.id}
-                quantity={selectedTicketId === ticket.id ? quantity : 0}
-                selectTicket={() =>
-                  selectTicket(ticket, slug as string, eventDetail)
-                }
-                increaseQuantity={() => increaseQuantity(ticket.purchaseLimit)}
-                decreaseQuantity={decreaseQuantity}
-                ticket={ticket}
-                hasPassed={hasPassed}
-              />
-            ))}
           </div>
-
-          {/* Total and Purchase Button */}
-          {!hasPassed && (
-            <div className="border-t pt-6">
-              <div className="flex justify-between items-center mb-6">
-                <span className=" font-bold text-gray-900">Total:</span>
-                <span className="text-[1.1rem] font-bold text-primary">
-                  {getTotal()}
-                </span>
-              </div>
-              <DefaultButton className="!w-full" onClick={() => handleNext()}>
-                Next
-              </DefaultButton>
-            </div>
-          )}
-        </motion.div>
+        </div>
       </div>
     </HomeLayout>
   );
