@@ -18,12 +18,18 @@ const LoginLayout = ({ children }: LoginLayoutProps) => {
   const initialized= useCheckoutStore((state)=>state.initialized)
   const redirect = Storage?.getItem("redirectPath") || null;
 
-  if (redirect) useCheckoutLeaveGuards({
+  let ModalComponent = null;
+
+if (redirect) {
+  const { ModalComponent: GuardModal } = useCheckoutLeaveGuards({
     active: initialized,
     backTo: `/event-details/${eventName}`,
   });
+  ModalComponent = GuardModal;
+}
   return (
     <div className=" min-h-screen flex">
+      {ModalComponent}
       <ToastContainer/>
       <div className="w-full xl:w-[45%] z-10 flex flex-col gap-2  py-8  relative">
       <div className="relative w-full mb-6">

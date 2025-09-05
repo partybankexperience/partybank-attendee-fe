@@ -69,7 +69,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
         ref={modalRef}
         className="bg-white rounded-lg shadow-lg p-6 max-w-md w-[calc(100vw-40px)] md:w-full"
       >
-        <button className="flex justify-end
+        <button className="flex w-full justify-end
         "onClick={onClose}>
         <RxCrossCircled className='text-primary hover:text-deepRed cursor-pointer text-[20px] ' 
           aria-description='Close modal' role='button' tabIndex={0}/>

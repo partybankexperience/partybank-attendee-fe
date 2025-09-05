@@ -18,7 +18,7 @@ import {
   usePaymentTimer,
 } from "../../components/helpers/timer";
 import { FaSpinner } from "react-icons/fa";
-import { useCheckoutLeaveGuards } from "../checkout/CancelCheckout";
+import { useCancelCheckout } from "../checkout/CancelCheckout";
 
 const Login = () => {
   const [email, setemail] = useState("");
@@ -44,6 +44,7 @@ const Login = () => {
     useTicketStore();
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [timersInitialized, setTimersInitialized] = useState(false);
+  const { handleCancelCheckout, ModalForceComponent} = useCancelCheckout();
   const eventName = Storage.getItem("eventName");
   const [initiateOtpError, setinitiateOtpError] = useState(false);
   const timeLeft = usePaymentTimer(endTime, () => {
@@ -181,10 +182,11 @@ const Login = () => {
   useEffect(() => {
     if (!timersInitialized) return; // Prevent running before timers are set
     if (timeLeft === 0 && endTime === null) {
-      useCheckoutLeaveGuards({
-        active: true,
-        backTo: `/event-details/${eventName}`,
-      });
+      // useCheckoutLeaveGuards({
+      //   active: true,
+      //   backTo: `/event-details/${eventName}`,
+      // });
+      handleCancelCheckout(`/event-details/${eventName}`,'Session Timed Out','Your ticket hold has expired. Please restart the booking process.')
     }
   }, [timeLeft, eventName, timersInitialized, endTime]);
   const [loading, setIsLoading] = useState(false);
@@ -205,6 +207,7 @@ const Login = () => {
 
   return (
     <LoginLayout>
+      {ModalForceComponent}
       <form
         className="grid mt-[2vh] md:mt-[2vh] gap-[3vh] h-fit w-full "
         onSubmit={handleLogin}

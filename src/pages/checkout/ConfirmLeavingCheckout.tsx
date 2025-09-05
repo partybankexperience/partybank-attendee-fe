@@ -1,6 +1,7 @@
 // useConfirmModal.ts
 import { useState, useCallback, useRef } from "react";
 import { Modal } from "../../components/modal/Modal";
+import DefaultButton from "../../components/buttons/DefaultButton";
 
 export function useConfirmModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,21 +24,22 @@ export function useConfirmModal() {
 
   const ModalComponent = (
     <Modal isOpen={isOpen} onClose={() => handleClose(false)}>
-      <h2 className="font-bold text-lg mb-4 text-center">Are you sure?</h2>
+      <h2 className="font-bold text-lg mb-4 text-center">Leave Checkout?</h2>
       <p className="mb-6 text-center">{message}</p>
       <div className="flex justify-center gap-4">
-        <button
-          className="px-4 py-2 bg-gray-200 rounded"
-          onClick={() => handleClose(false)}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-4 py-2 bg-red-600 text-white rounded"
+      <DefaultButton
+      variant='black'
           onClick={() => handleClose(true)}
         >
           Leave
-        </button>
+        </DefaultButton>
+        <DefaultButton
+        
+          onClick={() => handleClose(false)}
+        >
+          Stay
+        </DefaultButton>
+        
       </div>
     </Modal>
   );
@@ -72,12 +74,12 @@ export function useForceLeaveModal() {
         <h2 className="font-semibold  text-[1.5rem] mb-4 text-center">{title}</h2>
       <p className="mb-6 text-center ">{message}</p>
       <div className="flex justify-center">
-        <button
-          className="px-4 py-2 bg-red-600 text-white rounded"
+        <DefaultButton
+          // className="px-4 py-2 bg-red-600 text-white rounded"
           onClick={() => handleClose(true)}
         >
           Back to Tickets
-        </button>
+        </DefaultButton>
       </div>
         
       </Modal>
