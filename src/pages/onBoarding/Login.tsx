@@ -158,8 +158,9 @@ const Login = () => {
         }
       } else navigate(-1);
     } catch (error) {
-      console.error(error);
+      console.error(error,'the error');
       setisLoading(false);
+      setpassword('')
     } finally {
       setisLoading(false);
     }

@@ -24,6 +24,7 @@ interface TicketCardProps {
   increaseQuantity: () => void;
   decreaseQuantity: () => void;
   hasPassed: boolean;
+  isSoldOut: boolean;
 }
 
 const TicketCard: React.FC<TicketCardProps> = ({
@@ -34,6 +35,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
   increaseQuantity,
   decreaseQuantity,
   hasPassed,
+  isSoldOut,
 }) => {
   const {
     name,
@@ -49,10 +51,9 @@ const TicketCard: React.FC<TicketCardProps> = ({
   return (
     <div
       onClick={() =>
-        available !== 0 &&
         !hasPassed &&
         ticket?.purchasable &&
-        available != null &&
+        !isSoldOut &&
         selectTicket()
       }
       className={`relative w-full bg-white rounded-xl p-4 flex flex-col gap-3 transition-all duration-300
@@ -62,7 +63,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
             : "border border-gray-200"
         }
         ${
-          available === 0 || !ticket.purchasable || hasPassed || available == null
+           !ticket.purchasable || hasPassed || isSoldOut
             ? "opacity-50 cursor-not-allowed"
             : "cursor-pointer hover:shadow-md"
         }`}
@@ -80,7 +81,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
 
             <div className="flex items-center h-full flex-shrink-0">
               {isSelected &&
-                available != 0 &&
+                !isSoldOut &&
                 ticket.purchasable &&
                 ticket.type === "paid" && (
                   <motion.div
@@ -115,7 +116,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
                   </motion.div>
                 )}
 
-              {(available == 0 || available == null) ? (
+              {(isSoldOut) ? (
                 <span className="text-red-500 font-bold text-sm">Sold Out</span>
               ) : (
                 !ticket.purchasable && (

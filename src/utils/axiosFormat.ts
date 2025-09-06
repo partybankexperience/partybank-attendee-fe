@@ -53,11 +53,25 @@ export const apiCall = ({
         const errorMessage =
           err.response?.data?.message || err.message || "Something went wrong.";
 
+        // if (err.response?.status === 401) {
+        //   Storage.clearItem();
+        //   window.location.href = `/login?state=notAuthenticated&message=${encodeURIComponent(
+        //     errorMessage
+        //   )}`;
+        //   return;
+        // }
         if (err.response?.status === 401) {
-          Storage.clearItem();
-          window.location.href = `/login?state=notAuthenticated&message=${encodeURIComponent(
-            errorMessage
-          )}`;
+          const currentPath = window.location.pathname;
+
+          // ✅ Prevent redirect loop if already on /login
+          if (!currentPath.startsWith("/login")) {
+            Storage.clearItem();
+            window.location.href = `/login?state=notAuthenticated&message=${encodeURIComponent(
+              errorMessage
+            )}`;
+          }
+          errorAlert("Not Authenticated", errorMessage);
+          rej(err);
           return;
         }
 

@@ -108,7 +108,7 @@ const Checkout: React.FC = () => {
 
   useEffect(() => {
     if( checkoutStage === 'checkout' && selectedTicketId) {
-      startTimer(.2); // Start the timer with 10 minutes
+      startTimer(15); // Start the timer with 15 minutes
       setTimersInitialized(true);
     }
   }, [checkoutStage])
