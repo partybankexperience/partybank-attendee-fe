@@ -28,6 +28,7 @@ const Checkout: React.FC = () => {
     transition: { duration: 0.6, ease: "easeOut" },
   };
   const { handleCancelCheckout, ModalForceComponent} = useCancelCheckout();
+  const reset = useTicketStore((s) => s.reset);
 
   const [isLoading, setisLoading] = useState(false);
   const { startCheckout } = useCheckoutStore();
@@ -76,12 +77,19 @@ const Checkout: React.FC = () => {
   
       // ✅ Paid ticket — skip checkout page, go straight to Paystack
       if (ticket?.type === "paid" && res?.paystackLink) {
-        window.location.replace(res.paystackLink); // replace() prevents user from coming "back" to checkout page
-        return; // ⬅️ ensure nothing else runs
+        resetCheckout();
+        reset()
+        // window.location.replace(res.paystackLink); // replace() prevents user from coming "back" to checkout page
+        // return; // ⬅️ ensure nothing else runs
+         // allow state/storage update to flush
+  await new Promise((r) => setTimeout(r, 0));
+
+  window.location.replace(res.paystackLink);
+  return;
       }
   
       // ✅ Free ticket — handle confirmation locally
-      if (ticket?.type === "free") {
+      if (ticket?.type === "free" &&res) {
         setConfirmationDetails(eventDetail, ticket, quantity);
         resetCheckout();
         navigate("/confirmation");

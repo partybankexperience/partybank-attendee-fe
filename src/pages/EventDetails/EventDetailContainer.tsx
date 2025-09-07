@@ -289,6 +289,7 @@ const EventDetails: React.FC = () => {
                           decreaseQuantity={decreaseQuantity}
                           ticket={ticket}
                           hasPassed={hasPassed}
+                          isSoldOut={ticket.isSoldOut}
                         />
                       </div>
                     ))}
