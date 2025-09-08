@@ -9,7 +9,10 @@ import HomeLayout from "../../components/layouts/HomeLayout";
 import DefaultButton from "../../components/buttons/DefaultButton";
 import { useTicketStore } from "../../stores/cartStore";
 import { errorAlert } from "../../components/alerts/ToastService";
-import { checkticketAvailability, getEventBySlug } from "../../containers/eventsApi";
+import {
+  checkticketAvailability as checkTicketAvailability, // alias to fix naming
+  getEventBySlug,
+} from "../../containers/eventsApi";
 import { EventDetailsSkeleton } from "../../components/common/LoadingSkeleton";
 import { formatDate, formatTimeRange } from "../../components/helpers/dateTimeHelpers";
 import { useAuthStore } from "../../stores/useAuthStore";
@@ -17,10 +20,13 @@ import { runPipeline } from "../../utils/axiosFormat";
 import { useCheckoutStore } from "../../stores/checkoutStore";
 
 const EventDetails: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const { setCheckoutStage } = useAuthStore();
-  const { slug } = useParams();
+  // Router / navigation
+  const navigate = useNavigate();
+  const { slug: eventSlug } = useParams();
 
+  // Global stores
+  const { setCheckoutStage } = useAuthStore();
+  const { createAndStoreReservation } = useCheckoutStore();
   const {
     selectedTicketId,
     quantity,
@@ -30,56 +36,81 @@ const EventDetails: React.FC = () => {
     getTotal,
   } = useTicketStore();
 
-  const { createAndStoreReservation } = useCheckoutStore();
-  const [eventDetail, setEventDetail] = useState<any>(null);
-  const [hasPassed, setHasPassed] = useState(false);
+  // Local state
+  const [isLoading, setIsLoading] = useState(true);
+  const [eventDetails, setEventDetails] = useState<any>(null);
+  const [hasEventPassed, setHasEventPassed] = useState(false);
+  const [hasAutoSelectedTicket, setHasAutoSelectedTicket] = useState(false);
 
-  const navigate = useNavigate();
-
+  // Animations
   const fadeInUp = {
     initial: { opacity: 0, y: 24 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" },
   };
 
-  async function getIdentity(user?: { id?: string }) {
+  // Always select the first ticket once per page load
+  useEffect(() => {
+    // reset auto-select guard when slug changes
+    setHasAutoSelectedTicket(false);
+  }, [eventSlug]);
+
+  useEffect(() => {
+    if (!eventDetails) return;
+    if (hasAutoSelectedTicket) return;
+
+    const firstTicket = (eventDetails?.tickets ?? [])[0];
+    if (firstTicket) {
+      // Select the very first ticket on initial load
+      selectTicket(firstTicket, eventSlug as string, eventDetails);
+      setHasAutoSelectedTicket(true);
+    }
+  }, [eventDetails, eventSlug, hasAutoSelectedTicket, selectTicket]);
+
+  // Helpers
+  async function getReservationIdentity(user?: { id?: string }) {
     if (user?.id) return { userId: user.id };
     try {
-      const { ip } = await fetch("https://api64.ipify.org?format=json").then((r) => r.json());
-      return { ipHash: ip };
+      const response = await fetch("https://api64.ipify.org?format=json");
+      const data = await response.json();
+      return { ipHash: data.ip as string };
     } catch {
       return { ipHash: "anonymous" };
     }
   }
 
-  async function handleNext() {
+  async function handleProceedToCheckout() {
     if (!selectedTicketId) {
       errorAlert("Error", "Please select a ticket first!");
       return;
     }
-    const user = Storage.getItem("user");
-    const identity = await getIdentity(user);
+
+    const currentUser = Storage.getItem("user");
+    const reservationIdentity = await getReservationIdentity(currentUser);
 
     try {
       await runPipeline([
+        // 1) Check availability
         async () => {
-          const res = await checkticketAvailability(selectedTicketId, quantity);
-          if (!res || res?.available === 0) {
+          const availabilityResponse = await checkTicketAvailability(selectedTicketId, quantity);
+          if (!availabilityResponse || availabilityResponse?.available === 0) {
             errorAlert("Error", "Ticket is not available");
             throw new Error("Ticket unavailable");
           }
-          return res;
+          return availabilityResponse;
         },
+        // 2) Create reservation
         async () => {
           return await createAndStoreReservation(
-            eventDetail.id,
+            eventDetails.id,
             selectedTicketId,
             quantity,
-            identity
+            reservationIdentity
           );
         },
+        // 3) Navigate
         async () => {
-          if (!user) {
+          if (!currentUser) {
             Storage.setItem("redirectPath", "/checkout");
             setCheckoutStage("eventDetails");
             navigate("/login");
@@ -89,59 +120,77 @@ const EventDetails: React.FC = () => {
           return null;
         },
       ]);
-    } catch (err) {
-      console.error("Checkout pipeline aborted:", err);
+    } catch (error) {
+      console.error("Checkout pipeline aborted:", error);
     }
   }
 
-  async function loadEvent() {
-    setLoading(true);
+  // Data loaders
+  async function loadEventDetails() {
+    setIsLoading(true);
     try {
-      const res = await getEventBySlug(slug as string);
-      setEventDetail(res);
+      const response = await getEventBySlug(eventSlug as string);
+      setEventDetails(response);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    loadEvent();
+    loadEventDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [eventSlug]);
 
+  // Compute event passed flag
   useEffect(() => {
-    if (!eventDetail) return;
+    if (!eventDetails) return;
     const now = new Date();
-    const start = eventDetail.startDate ? new Date(eventDetail.startDate) : null;
-    const end = eventDetail.endDate ? new Date(eventDetail.endDate) : null;
-    setHasPassed(end ? now > end : start ? now > start : false);
-  }, [eventDetail]);
+    const startDate = eventDetails.startDate ? new Date(eventDetails.startDate) : null;
+    const endDate = eventDetails.endDate ? new Date(eventDetails.endDate) : null;
+    setHasEventPassed(endDate ? now > endDate : startDate ? now > startDate : false);
+  }, [eventDetails]);
 
-  const sortedTickets = useMemo(() => {
-    const list: any[] = Array.isArray(eventDetail?.tickets) ? [...eventDetail.tickets] : [];
-    const statusRank = (t: any) => {
-      const soldOut = t?.available === 0 || t?.available == null;
-      const buyable = t?.purchasable && !soldOut;
-      if (buyable) return 0;
-      if (soldOut) return 1;
-      return 2;
+  // Sorted tickets (buyable first, then sold out, then others; within buyable, cheaper first)
+  const sortedTicketsByStatusAndPrice = useMemo(() => {
+    const tickets: any[] = Array.isArray(eventDetails?.tickets)
+      ? [...eventDetails.tickets]
+      : [];
+  
+    const getStatusRank = (ticket: any) => {
+      const isSoldOut = ticket?.available === 0 || ticket?.available == null;
+      const isPurchasable = ticket?.purchasable && !isSoldOut;
+      if (isPurchasable) return 0; // buyable first
+      if (isSoldOut) return 1;     // then sold out
+      return 2;                    // then everything else
     };
-    const getPrice = (t: any) => (t?.type === "paid" ? Number(t.price) || 0 : 0);
-
-    return list.sort((a, b) => {
-      const ra = statusRank(a);
-      const rb = statusRank(b);
-      if (ra !== rb) return ra - rb;
-      if (ra === 0) {
-        const pa = getPrice(a);
-        const pb = getPrice(b);
-        if (pa !== pb) return pa - pb;
+  
+    const getPaidPrice = (ticket: any) =>
+      ticket?.type === "paid" ? Number(ticket.price) || 0 : 0;
+  
+    return tickets.sort((firstTicket, secondTicket) => {
+      const firstStatusRank = getStatusRank(firstTicket);
+      const secondStatusRank = getStatusRank(secondTicket);
+  
+      if (firstStatusRank !== secondStatusRank) {
+        return firstStatusRank - secondStatusRank;
       }
+  
+      // Within "buyable", sort cheaper first
+      if (firstStatusRank === 0) {
+        const firstPrice = getPaidPrice(firstTicket);
+        const secondPrice = getPaidPrice(secondTicket);
+        if (firstPrice !== secondPrice) {
+          return firstPrice - secondPrice;
+        }
+      }
+  
       return 0;
     });
-  }, [eventDetail?.tickets]);
+  }, [eventDetails?.tickets]);
+  
 
-  if (loading) {
+  // Loading state
+  if (isLoading) {
     return (
       <HomeLayout>
         <EventDetailsSkeleton />
@@ -149,7 +198,8 @@ const EventDetails: React.FC = () => {
     );
   }
 
-  if (!eventDetail) {
+  // Not found state
+  if (!eventDetails) {
     return (
       <HomeLayout>
         <div className="flex items-center justify-center min-h-[50vh] text-center">
@@ -164,7 +214,7 @@ const EventDetails: React.FC = () => {
       <div className="relative -mt-[4.5rem] z-20">
         <div className="max-w-7xl mx-auto px-5 md:px-8 lg:px-10 xl:px-12">
           <div className="bg-white rounded-2xl shadow-md p-4 md:p-6 lg:p-8">
-            {/* Outer grid: keep two columns from md; narrower panel on md for iPad, wider on lg+ */}
+            {/* Outer grid */}
             <div className="grid gap-8 lg:gap-10 md:grid-cols-[minmax(0,1fr)_380px] lg:grid-cols-[minmax(0,1fr)_420px]">
               {/* LEFT: image + details */}
               <section className="min-w-0">
@@ -176,20 +226,20 @@ const EventDetails: React.FC = () => {
                   animate="animate"
                 >
                   <img
-                    src={eventDetail?.bannerImage || xtasyGroove}
-                    alt={eventDetail?.name || "Event image"}
+                    src={eventDetails?.bannerImage || xtasyGroove}
+                    alt={eventDetails?.name || "Event image"}
                     className="w-full h-auto object-cover"
                   />
                 </motion.div>
 
-                {/* Inner layout: stack on md (iPad), split image/details only from xl up */}
+                {/* Inner layout */}
                 <div className="grid xl:grid-cols-[360px_minmax(0,1fr)] gap-4 md:gap-5 lg:gap-6 items-start">
-                  {/* Sticky image on web/tablet */}
+                  {/* Sticky image on larger screens */}
                   <aside className="hidden md:block md:sticky md:top-6 md:self-start md:mb-4 xl:mb-0 xl:mr-3">
                     <div className="relative">
                       <img
-                        src={eventDetail?.bannerImage || xtasyGroove}
-                        alt={eventDetail?.name || "Event image"}
+                        src={eventDetails?.bannerImage || xtasyGroove}
+                        alt={eventDetails?.name || "Event image"}
                         className="w-full h-auto object-cover rounded-[20px] border border-[#E5E7EB]"
                         loading="eager"
                       />
@@ -197,33 +247,28 @@ const EventDetails: React.FC = () => {
                   </aside>
 
                   {/* Details */}
-                  <motion.article
-                    variants={fadeInUp}
-                    initial="initial"
-                    animate="animate"
-                    className="min-w-0"
-                  >
+                  <motion.article variants={fadeInUp} initial="initial" animate="animate" className="min-w-0">
                     <h1 className="text-[1.75rem] md:text-[2rem] font-bold tracking-tight text-gray-900 mb-4">
-                      {eventDetail.name}
+                      {eventDetails.name}
                     </h1>
 
                     <div className="space-y-3 mb-6 text-gray-800 font-medium">
                       <div className="flex items-center gap-3">
                         <Calendar className="w-5 h-5 text-primary/80 shrink-0" />
                         <span>
-                          {formatDate(eventDetail?.startDate)}
-                          {eventDetail.endDate && ` - ${formatDate(eventDetail.endDate)}`}
+                          {formatDate(eventDetails?.startDate)}
+                          {eventDetails.endDate && ` - ${formatDate(eventDetails.endDate)}`}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-3">
                         <Clock className="w-5 h-5 text-primary/80 shrink-0" />
-                        <span>{formatTimeRange(eventDetail.startTime, eventDetail.endTime)}</span>
+                        <span>{formatTimeRange(eventDetails.startTime, eventDetails.endTime)}</span>
                       </div>
 
                       <div className="flex items-center gap-3">
                         <MapPin className="w-5 h-5 text-primary/80 shrink-0" />
-                        <span>{eventDetail.venueName || "To Be Disclosed"}</span>
+                        <span>{eventDetails.venueName || "To Be Disclosed"}</span>
                       </div>
                     </div>
 
@@ -232,7 +277,7 @@ const EventDetails: React.FC = () => {
                         About Event
                       </h2>
                       <p className="text-[#6B7280] leading-relaxed">
-                        {eventDetail.description ||
+                        {eventDetails.description ||
                           "Join us for an unforgettable experience—great music, great people, and the best vibes. Don’t miss it!"}
                       </p>
                     </div>
@@ -240,14 +285,14 @@ const EventDetails: React.FC = () => {
                 </div>
               </section>
 
-              {/* RIGHT: Ticket panel (fits viewport; list scrolls vertically only) */}
+              {/* RIGHT: Ticket panel */}
               <aside className="md:sticky md:top-6 md:self-start">
                 <motion.div
                   className="
                     bg-gradient-to-b from-[#FFF2F4] via-[#FFF2F4] to-white
                     rounded-2xl shadow-lg p-5 md:p-5
                     md:flex md:flex-col
-                    md:max-h-[calc(100vh-16.5rem)]   /* tune if your header height differs */
+                    md:max-h[calc(100vh-16.5rem)]
                     min-h-[420px]
                   "
                   initial={{ opacity: 0, x: 24 }}
@@ -257,10 +302,10 @@ const EventDetails: React.FC = () => {
                   {/* Header */}
                   <div className="mb-3 shrink-0">
                     <h3 className="text-[1.15rem] md:text-[1.25rem] font-semibold text-[#231F20]">
-                      {hasPassed ? "View Tickets" : "Get Tickets"}
+                      {hasEventPassed ? "View Tickets" : "Get Tickets"}
                     </h3>
                     <p className="text-[#979595] text-sm md:text-[0.95rem]">
-                      {hasPassed ? "Event has concluded" : "Which ticket type are you going for?"}
+                      {hasEventPassed ? "Event has concluded" : "Which ticket type are you going for?"}
                     </p>
                   </div>
 
@@ -275,28 +320,28 @@ const EventDetails: React.FC = () => {
                       [&::-webkit-scrollbar-thumb]:bg-gray-300
                     "
                   >
-                    {sortedTickets.length === 0 && (
+                    {sortedTicketsByStatusAndPrice.length === 0 && (
                       <div className="text-gray-500 text-sm">No tickets available.</div>
                     )}
 
-                    {sortedTickets.map((ticket) => (
-                      <div key={ticket.id} className="w-full [&>*]:!w-full">
+                    {sortedTicketsByStatusAndPrice.map((ticketItem) => (
+                      <div key={ticketItem.id} className="w-full [&>*]:!w-full">
                         <TicketCard
-                          isSelected={selectedTicketId === ticket.id}
-                          quantity={selectedTicketId === ticket.id ? quantity : 0}
-                          selectTicket={() => selectTicket(ticket, slug as string, eventDetail)}
-                          increaseQuantity={() => increaseQuantity(ticket.purchaseLimit)}
+                          isSelected={selectedTicketId === ticketItem.id}
+                          quantity={selectedTicketId === ticketItem.id ? quantity : 0}
+                          selectTicket={() => selectTicket(ticketItem, eventSlug as string, eventDetails)}
+                          increaseQuantity={() => increaseQuantity(ticketItem.purchaseLimit)}
                           decreaseQuantity={decreaseQuantity}
-                          ticket={ticket}
-                          hasPassed={hasPassed}
-                          isSoldOut={ticket.isSoldOut}
+                          ticket={ticketItem}
+                          hasPassed={hasEventPassed}
+                          isSoldOut={ticketItem.isSoldOut}
                         />
                       </div>
                     ))}
                   </div>
 
                   {/* Footer */}
-                  {!hasPassed && (
+                  {!hasEventPassed && (
                     <div className="pt-5 mt-3 border-t border-gray-200 shrink-0">
                       <div className="flex items-center justify-between mb-4">
                         <span className="font-semibold text-gray-900">Total</span>
@@ -304,7 +349,7 @@ const EventDetails: React.FC = () => {
                           {getTotal()}
                         </span>
                       </div>
-                      <DefaultButton className="!w-full" onClick={handleNext}>
+                      <DefaultButton className="!w-full" onClick={handleProceedToCheckout}>
                         Next
                       </DefaultButton>
                     </div>
