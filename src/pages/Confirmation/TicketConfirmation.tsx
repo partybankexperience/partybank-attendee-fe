@@ -77,7 +77,7 @@ const Confirmation = () => {
 
   return (
     <HomeLayout>
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className=" bg-gray-50 py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <motion.div
             className="shadow-lg overflow-hidden bg-gray-50 rounded-2xl bg-clip-padding 
