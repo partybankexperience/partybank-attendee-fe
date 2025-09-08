@@ -1,78 +1,54 @@
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, Ticket } from "lucide-react";
 import xtasyGroove from "../../assets/images/XtasyGroove.png";
-import barcode from "../../assets/images/barcode.png";
 import checkmark from "../../assets/images/checkmark.png";
 import { useNavigate } from "react-router-dom";
 import HomeLayout from "../../components/layouts/HomeLayout";
 import { useConfirmationStore } from "../../stores/confirmationStore";
-import {
-  formatDate,
-  formatTimeRange,
-} from "../../components/helpers/dateTimeHelpers";
+import { formatDate, formatTimeRange } from "../../components/helpers/dateTimeHelpers";
 import { useEffect } from "react";
 
 const Confirmation = () => {
-  // Sample ticket data - this would typically come from props or state
-  const { ticketsC, eventDetailsC, quantityC,clearConfirmation } = useConfirmationStore();
-  
+  const { ticketsC, eventDetailsC, quantityC, clearConfirmation } = useConfirmationStore();
 
-  const formatPrice = (price: number) => {
-    return `₦${price.toLocaleString()}`;
-  };
-
+  const formatPrice = (price: number) => `₦${price.toLocaleString()}`;
   const navigate = useNavigate();
 
-  // Animation variants
+  // Animations
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" },
   };
-
   const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.15,
-      },
-    },
+    animate: { transition: { staggerChildren: 0.15 } },
   };
-
   const scaleIn = {
-    initial: { opacity: 0, scale: 0.8 },
+    initial: { opacity: 0, scale: 0.9 },
     animate: { opacity: 1, scale: 1 },
-    transition: { duration: 0.5, ease: "easeOut" },
+    transition: { duration: 0.4, ease: "easeOut" },
   };
-  
-  useEffect(() => {
-    // Store the path where this hook was mounted (confirmation page)
-    const currentPath = location.pathname;
 
+  useEffect(() => {
+    const currentPath = location.pathname;
     return () => {
-      // This runs when the component unmounts (i.e., navigating away)
-      if (location.pathname !== currentPath) {
-        clearConfirmation();
-        // navigate("/", { replace: true }); // redirect to homepage
-      }
+      if (location.pathname !== currentPath) clearConfirmation();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-if (!eventDetailsC || !ticketsC) {
+  if (!eventDetailsC || !ticketsC) {
     return (
       <HomeLayout>
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-            <h2 className="text-2xl font-semibold text-textBlack mb-4">
-              No Confirmation Details
-            </h2>
-            <p className="text-gray-600 mb-6">
-              It seems there are no ticket details to display. Please book a
-              ticket first.
+          <div className="bg-white p-6 md:p-8 rounded-lg shadow text-center">
+            <h2 className="text-xl md:text-2xl font-semibold text-textBlack mb-3">No Confirmation Details</h2>
+            <p className="text-gray-600 mb-5">
+              It seems there are no ticket details to display. Please book a ticket first.
             </p>
             <button
               onClick={() => navigate("/search")}
-              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
+              className="px-5 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
             >
               Back to Events
             </button>
@@ -80,202 +56,145 @@ if (!eventDetailsC || !ticketsC) {
         </div>
       </HomeLayout>
     );
-}
+  }
+
   return (
     <HomeLayout>
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <motion.div
-            className="shadow-lg overflow-hidden bg-gray-50 rounded-2xl bg-clip-padding 
-          backdrop-filter backdrop-blur-sm bg-opacity-10 border border-gray-100 relative 
-          top-[-8rem] z-40"
-            initial={{ opacity: 0, y: 20 }}
+            className="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden"
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
           >
             {/* Success Header */}
             <motion.div
-              className="bg-white px-6 py-8 lg:px-8 lg:py-12 text-center  rounded-md
-             bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border
-              border-gray-100 relative"
+              className="px-5 py-6 md:px-8 md:py-10 text-center relative"
               variants={staggerContainer}
               initial="initial"
               animate="animate"
             >
-              <div
-                className=" w-full h-[35%] md:h-1/2 bg-gradient-to-b from-[#00C452]/50  to-[#00C452]/2
-              absolute top-0 left-0 rounded-md blur-3xl backdrop-blur-sm "
-              ></div>
-              <motion.div
-                className="inline-flex items-center justify-center
-                rounded-full mb-6 relative"
-                variants={scaleIn}
-              >
-                <div>
-                  <img src={checkmark} alt="" className="w-[3rem]" />
-                </div>
+              <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#00C452]/20 to-transparent pointer-events-none" />
+              <motion.div className="inline-flex items-center justify-center rounded-full mb-4 relative" variants={scaleIn}>
+                <img src={checkmark} alt="" className="w-10 h-10" />
               </motion.div>
 
-              <motion.h1
-                className="text-2xl lg:text-3xl font-semibold text-textBlack mb-3"
-                variants={fadeInUp}
-              >
-                Your tickets has been confirmed.
+              <motion.h1 className="text-xl md:text-2xl font-semibold text-textBlack mb-2" variants={fadeInUp}>
+                Your tickets have been confirmed.
               </motion.h1>
 
-              <motion.p
-                className="text-[#A9ABAE] font-medium text-lg"
-                variants={fadeInUp}
-              >
+              <motion.p className="text-[#6B7280] font-medium" variants={fadeInUp}>
                 Tickets confirmed and sent to your email.
               </motion.p>
             </motion.div>
 
-            {/* horizontal rule */}
-            <hr className=" mx-5 bg-[#EDECEC] border border-[#EDECEC]" />
+            <hr className="border-t border-[#EDECEC]" />
 
-            {/* Ticket Details */}
-            <div className="p-6 lg:p-8 bg-white">
-              <div className="lg:flex lg:gap-8 lg:items-start">
-                {/* Left Side - Event Details */}
+            {/* Details */}
+            <div className="p-5 md:p-8">
+              <div className="lg:flex lg:items-start lg:gap-6">
+                {/* Event Details */}
                 <motion.div
-                  className="flex-1 mb-8 lg:mb-0"
-                  initial={{ opacity: 0, x: -20 }}
+                  className="flex-1 mb-6 lg:mb-0"
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
+                  transition={{ delay: 0.15, duration: 0.4 }}
                 >
-                  {/* Event Image and Title */}
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="  rounded-xl overflow-hidden flex-shrink-0">
-                      <div>
+                  {/* Image + Title */}
+                  <div className="flex items-start gap-4 mb-5">
+                    {/* Responsive image */}
+                    <div className="relative rounded-xl overflow-hidden flex-shrink-0 border border-gray-200">
+                      {/* fixed box with object-cover for consistent look on mobile */}
+                      <div className="w-40 h-28 md:w-56 md:h-36">
                         <img
                           src={eventDetailsC?.bannerImage || xtasyGroove}
                           alt={eventDetailsC?.name || "Event"}
-                          className="w-[5rem] md:w-[10rem] h-auto 
-                          max-h-[45rem] lg:w-[8rem] lg:h-[10rem]"
+                          className="w-full h-full object-cover"
+                          loading="eager"
                         />
                       </div>
                     </div>
 
-                    <div className="flex-1">
-                      <h2 className="text-xl lg:text-2xl font-bold text-textBlack mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg md:text-xl font-bold text-textBlack mb-3 break-words">
                         {eventDetailsC?.name}
                       </h2>
 
-                      {/* Event Info */}
+                      {/* Meta */}
                       <div className="space-y-3 text-textBlack font-semibold">
-                        <div className="lg:flex lg:gap-5">
-                          <div className="flex items-center gap-3 ">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-5">
+                          <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-primary" />
-                            <span className="text-sm lg:text-base">
-                              {" "}
-                              {formatDate(eventDetailsC?.startDate)}{" "}
-                              {eventDetailsC.endDate &&
-                                `- ${formatDate(eventDetailsC.endDate)}`}{" "}
+                            <span className="text-sm md:text-base">
+                              {formatDate(eventDetailsC?.startDate)}
+                              {eventDetailsC.endDate ? ` - ${formatDate(eventDetailsC.endDate)}` : ""}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-3 ">
+                          <div className="flex items-center gap-2 mt-2 sm:mt-0">
                             <Clock className="w-4 h-4 text-primary" />
-                            <span className="text-sm lg:text-base">
-                              {formatTimeRange(
-                                eventDetailsC.startTime,
-                                eventDetailsC.endTime
-                              )}
+                            <span className="text-sm md:text-base">
+                              {formatTimeRange(eventDetailsC.startTime, eventDetailsC.endTime)}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-start gap-3 ">
+                        <div className="flex items-start gap-2">
                           <MapPin className="w-4 h-4 text-primary mt-0.5" />
-                          <span className="text-sm lg:text-base">
-                          {eventDetailsC.venueName || "TBD"}
-                          </span>
+                          <span className="text-sm md:text-base">{eventDetailsC.venueName || "TBD"}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Ticket Details */}
-
+                  {/* Ticket Summary */}
                   <motion.div
-                    className="bg-gary-50 rounded-xl p-4 lg:p-6 lg:flex justify-center 
-                  lg:w-[50rem]"
-                    initial={{ opacity: 0, y: 20 }}
+                    className="rounded-xl p-4 md:p-5 border border-gray-200 bg-white"
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.6 }}
+                    transition={{ delay: 0.25, duration: 0.4 }}
                   >
                     <div className="w-full">
-                      <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center gap-3 mb-3">
                         <Ticket className="w-5 h-5 text-primary" />
                         <span className="font-semibold text-textBlack">
-                          x {quantityC} - {ticketsC.name}
+                          x {quantityC} — {ticketsC.name}
                         </span>
-                        <span className="ml-auto font-bold text-lg">
-                        {typeof quantityC === "number" && formatPrice(ticketsC.price * quantityC)}
+                        <span className="ml-auto font-bold">
+                          {typeof quantityC === "number" && formatPrice(ticketsC.price * quantityC)}
                         </span>
                       </div>
 
-                      <div className="text-sm text-[#918F90] mb-4 font-medium">
-                        • Booking fee per ticket:{" "}
-                        {formatPrice(ticketsC.price)}
+                      <div className="text-sm text-[#6B7280] mb-4 font-medium">
+                        • Booking fee per ticket: {formatPrice(ticketsC.price)}
                       </div>
 
                       <div className="border-t pt-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-textBlack">
-                            Total :
-                          </span>
-                          <span className="text-xl font-bold text-primary">
-                          {typeof quantityC === "number" && formatPrice(ticketsC.price * quantityC)}
+                          <span className="text-base md:text-lg font-bold text-textBlack">Total :</span>
+                          <span className="text-lg md:text-xl font-bold text-primary">
+                            {typeof quantityC === "number" && formatPrice(ticketsC.price * quantityC)}
                           </span>
                         </div>
                       </div>
                     </div>
                   </motion.div>
                 </motion.div>
-
-                {/* Right Side - QR Code (Desktop) */}
-                <motion.div
-                  className="hidden lg:block flex-shrink-0 relative right-[8rem]"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.7, duration: 0.6 }}
-                >
-                  <div>
-                    <img src={barcode} alt="" className="w-[100%]" />
-                  </div>
-                </motion.div>
               </div>
-
-              {/* QR Code (Mobile) */}
-              <motion.div
-                className="lg:hidden flex justify-center mb-8"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.7, duration: 0.6 }}
-              >
-                <div>
-                  <img src={barcode} alt="" className="w-[100%]" />
-                </div>
-              </motion.div>
 
               {/* Back Button */}
               <motion.div
-                className="text-center my-5"
-                initial={{ opacity: 0, y: 20 }}
+                className="mt-6 flex justify-center"
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9, duration: 0.6 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
               >
                 <motion.button
-                  className="w-full lg:w-auto px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-lg transition-colors shadow-lg min-w-[200px]"
+                  className="w-full sm:w-auto px-6 py-3 md:px-8 md:py-4 bg-red-600 hover:bg-red-700 text-white font-semibold md:font-bold rounded-xl text-base md:text-lg transition-colors shadow"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    navigate("/search");
-                    // Handle navigation back to events
-                    // console.log("Navigate back to events");
-                  }}
+                  onClick={() => navigate("/search")}
                 >
                   Back to Events
                 </motion.button>
@@ -283,14 +202,14 @@ if (!eventDetailsC || !ticketsC) {
             </div>
           </motion.div>
 
-          {/* Additional Success Message */}
+          {/* Footer note */}
           <motion.div
-            className="text-center mt-8 text-gray-600"
+            className="text-center mt-6 md:mt-8 text-gray-600"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.2, duration: 0.6 }}
+            transition={{ delay: 0.35, duration: 0.4 }}
           >
-            <p className="text-sm lg:text-base">
+            <p className="text-sm md:text-base">
               Keep this confirmation safe. You'll need it for event entry.
             </p>
           </motion.div>
