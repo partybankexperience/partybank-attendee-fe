@@ -1,24 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, Ticket } from "lucide-react";
-// import { useNavigate } from "react-router-dom";
 import xtasyGroove from "../../assets/images/XtasyGroove.png";
 import HomeLayout from "../../components/layouts/HomeLayout";
-import { useCheckoutStore } from "../../stores/checkoutStore";
 import DefaultButton from "../../components/buttons/DefaultButton";
-import { useTicketStore } from "../../stores/cartStore";
-import { useCancelCheckout, useCheckoutLeaveGuards } from "./CancelCheckout";
 import { Storage } from "../../stores/InAppStorage";
-import {
-  formatDate,
-  formatTimeRange,
-} from "../../components/helpers/dateTimeHelpers";
-import { errorAlert } from "../../components/alerts/ToastService";
 import { useNavigate } from "react-router";
-import { formatTimer, usePaymentTimer } from "../../components/helpers/timer";
+import { useCheckoutStore } from "../../stores/checkoutStore";
+import { useTicketStore } from "../../stores/cartStore";
 import { useAuthStore } from "../../stores/useAuthStore";
-import { formatPrice } from "../../components/helpers/numberFormatHelpers";
 import { useConfirmationStore } from "../../stores/confirmationStore";
+import { useCancelCheckout, useCheckoutLeaveGuards } from "./CancelCheckout";
+import { errorAlert } from "../../components/alerts/ToastService";
+import { formatDate, formatTimeRange } from "../../components/helpers/dateTimeHelpers";
+import { formatTimer, usePaymentTimer } from "../../components/helpers/timer";
+import { formatPrice } from "../../components/helpers/numberFormatHelpers";
 
 const Checkout: React.FC = () => {
   // Animation variants
@@ -27,140 +23,141 @@ const Checkout: React.FC = () => {
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6, ease: "easeOut" },
   };
-  const { handleCancelCheckout, ModalForceComponent} = useCancelCheckout();
-  const reset = useTicketStore((s) => s.reset);
 
-  const [isLoading, setisLoading] = useState(false);
-  const { startCheckout } = useCheckoutStore();
-  const {setConfirmationDetails}= useConfirmationStore()
-  const { selectedTicketId, quantity, eventDetail, ticket, getTotal} =
-    useTicketStore();
-  const { reservationId,resetCheckout } = useCheckoutStore();
-  const eventName = Storage.getItem("eventName");
- const { checkoutStage } = useAuthStore();
-  const navigate=useNavigate()
+  const navigate = useNavigate();
 
-  // const redirect = Storage?.getItem("redirectPath") || null;
-    const [endTime, setEndTime] = useState<Date | null>(null);
+  // Stores
+  const { startCheckout, reservationId, resetCheckout } = useCheckoutStore();
+  const { selectedTicketId, quantity, eventDetail, ticket, getTotal, reset: resetCart } = useTicketStore();
+  const { checkoutStage } = useAuthStore();
+  const { setConfirmationDetails } = useConfirmationStore();
+
+  // Local UI state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Payment hold timer
+  const [endTime, setEndTime] = useState<Date | null>(null);
   const [timersInitialized, setTimersInitialized] = useState(false);
-    const timeLeft = usePaymentTimer(endTime, () => {
-      setEndTime(null);
-    });
-  
-    const startTimer = (durationInMinutes: number) => {
-      // Calculate the end time based on the input duration
-      const targetTime = new Date(new Date().getTime() + durationInMinutes * 60 * 1000);
-      setEndTime(targetTime);
-    };
-// the leave guard modal for when the user tries to leave the checkout page
+  const timeLeft = usePaymentTimer(endTime, () => setEndTime(null));
+  const startTimer = (mins: number) => setEndTime(new Date(Date.now() + mins * 60 * 1000));
+
+  // Leave guards
+  const { handleCancelCheckout, ModalForceComponent } = useCancelCheckout();
   const { ModalComponent } = useCheckoutLeaveGuards({
     active: true,
-    backTo: `/event-details/${eventName}`,
+    backTo: `/event-details/${Storage.getItem("eventName")}`,
   });
+
+  const eventName = Storage.getItem("eventName");
+
+  // Timer boot
+  useEffect(() => {
+    if (checkoutStage === "checkout" && selectedTicketId) {
+      startTimer(15);
+      setTimersInitialized(true);
+    }
+  }, [checkoutStage, selectedTicketId]);
+
+  // Timer expiry
+  useEffect(() => {
+    if (!timersInitialized) return;
+    if (timeLeft === 0 && endTime === null) {
+      handleCancelCheckout(
+        `/event-details/${eventName}`,
+        "Session Timed Out",
+        "Your ticket hold has expired. Please restart the booking process."
+      );
+    }
+  }, [timeLeft, endTime, timersInitialized, eventName, handleCancelCheckout]);
+
+  // Smooth checkout handler
   async function handleCheckout() {
-    setisLoading(true);
-  
+    setIsLoading(true);
+
     try {
+      // Guards
       if (!selectedTicketId) {
         errorAlert("Error", "No ticket selected. Please go back!");
         navigate(`/event-details/${eventName}`);
         return;
       }
-  
       if (!reservationId) {
         errorAlert("Error", "No reservation ID found. Please go back!");
         navigate(`/event-details/${eventName}`);
         return;
       }
-  
-      const res = await startCheckout(reservationId);
-  
-      // ✅ Paid ticket — skip checkout page, go straight to Paystack
-      if (ticket?.type === "paid" && res?.paystackLink) {
-        resetCheckout();
-        reset()
-        // window.location.replace(res.paystackLink); // replace() prevents user from coming "back" to checkout page
-        // return; // ⬅️ ensure nothing else runs
-         // allow state/storage update to flush
-  await new Promise((r) => setTimeout(r, 0));
 
-  window.location.replace(res.paystackLink);
-  return;
-      }
-  
-      // ✅ Free ticket — handle confirmation locally
-      if (ticket?.type === "free" &&res) {
-        setConfirmationDetails(eventDetail, ticket, quantity);
-        resetCheckout();
-        navigate("/confirmation");
+      const res = await startCheckout(reservationId);
+
+      // Paid flow → redirect to Paystack (defer cleanup to page unload)
+      if (ticket?.type === "paid" && res?.paystackLink) {
+        setIsNavigating(true);
+
+        const onPageHide = () => {
+          try {
+            resetCheckout();
+            resetCart();
+          } finally {
+            window.removeEventListener("pagehide", onPageHide);
+          }
+        };
+        window.addEventListener("pagehide", onPageHide, { once: true });
+
+        window.location.replace(res.paystackLink);
         return;
       }
-  
-      // Fallback (unexpected case)
-      
-  
-    } catch (error) {
-      console.error(error);
+
+      // Free flow → finalize locally
+      if (ticket?.type === "free" && res) {
+        setConfirmationDetails(eventDetail, ticket, quantity);
+        navigate("/confirmation");
+        setTimeout(() => {
+          resetCheckout();
+          resetCart();
+        }, 0);
+        return;
+      }
+
+      errorAlert("Error", "Unable to start checkout. Please try again.");
+    } catch (err) {
+      console.error(err);
       handleCancelCheckout(
         `/event-details/${eventName}`,
         "Oops! Something went wrong",
         "We encountered an issue while processing your request. Please try again in a moment. You'll be redirected to the event page."
       );
-      // navigate(`/event-details/${eventName}`);
     } finally {
-      setisLoading(false);
+      // Keep spinner while navigating so UI doesn't flash an empty state
+      if (!isNavigating) setIsLoading(false);
     }
   }
-  
 
-
-  useEffect(() => {
-    if( checkoutStage === 'checkout' && selectedTicketId) {
-      startTimer(15); // Start the timer with 15 minutes
-      setTimersInitialized(true);
-    }
-  }, [checkoutStage])
-
-  useEffect(() => {
-    if (!timersInitialized) return; // Prevent running before timers are set
-    if (timeLeft === 0&& endTime === null) {
-      // Cancel the checkout process when the timer hits zero
-      handleCancelCheckout(`/event-details/${eventName}`,'Session Timed Out','Your ticket hold has expired. Please restart the booking process.')
-    }
-  }, [timeLeft, eventName,timersInitialized,endTime]);
-
-  useCheckoutLeaveGuards({ active: true, backTo: `/event-details/${eventName}` });
-
-  if(!reservationId ){
+  // Avoid showing the "No active checkout" page while loading/redirecting
+  if (!reservationId && !isLoading && !isNavigating) {
     return (
       <HomeLayout>
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-          <h2 className="text-2xl font-semibold text-textBlack mb-4">
-            No active checkout session
-          </h2>
+          <h2 className="text-2xl font-semibold text-textBlack mb-4">No active checkout session</h2>
           <p className="text-gray-600 mb-6">
-            It seems like you don't have an active checkout session. Please go
-            back to the event page and select your tickets.
+            It seems like you don't have an active checkout session. Please go back to the event page and select your
+            tickets.
           </p>
-          <DefaultButton
-            variant="primary"
-            onClick={() => navigate(`/search`)}
-          >
+          <DefaultButton variant="primary" onClick={() => navigate(`/search`)}>
             Back to Events
           </DefaultButton>
         </div>
       </HomeLayout>
     );
   }
+
   return (
     <>
-    {ModalComponent}
-    {ModalForceComponent}
+      {ModalComponent}
+      {ModalForceComponent}
+
       <HomeLayout>
-        <div
-          className=" bg-white py-2 px-4 lg:py-8 w-[95vw] md:w-[80vw] lg:w-[85vw] relative top-[-5rem]
-         rounded-2xl z-40 max-w-6xl mx-auto "
-        >
+        <div className="bg-white py-2 px-4 lg:py-8 w-[95vw] md:w-[80vw] lg:w-[85vw] relative top-[-5rem] rounded-2xl z-40 max-w-6xl mx-auto">
           <motion.div
             className="bg-white rounded-2xl shadow-lg overflow-hidden"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -168,19 +165,11 @@ const Checkout: React.FC = () => {
             transition={{ duration: 0.8 }}
           >
             {/* Header */}
-            <motion.div
-              className="flex items-center justify-between pb-6 "
-              variants={fadeInUp}
-              initial="initial"
-              animate="animate"
-            >
+            <motion.div className="flex items-center justify-between pb-6" variants={fadeInUp} initial="initial" animate="animate">
               <div className="text-center flex-1">
-                <h1 className="text-2xl lg:text-3xl font-medium text-textBlack mb-2">
-                  Checkout
-                </h1>
+                <h1 className="text-2xl lg:text-3xl font-medium text-textBlack mb-2">Checkout</h1>
                 <motion.div
-                  className="inline-block bg-[#FFF2F4] text-primary px-4 py-2 
-                      rounded-[10px] text-sm font-medium border-2 border-primary/10"
+                  className="inline-block bg-[#FFF2F4] text-primary px-4 py-2 rounded-[10px] text-sm font-medium border-2 border-primary/10"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
@@ -190,60 +179,46 @@ const Checkout: React.FC = () => {
             </motion.div>
 
             <div className="lg:flex justify-center gap-1 mb-[4rem]">
-              {/* Ticket Info Section - Right Side */}
+              {/* Ticket Info */}
               <motion.div
-                className=" p-6 lg:p-8 bg-[#FFF2F4] md:rounded-[12px] "
+                className="p-6 lg:p-8 bg-[#FFF2F4] md:rounded-[12px]"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
               >
-                {/* <h2 className="text-xl font-semibold text-textBlack mb-6 red-hat-display">
-                      Ticket Info
-                    </h2> */}
-
                 {/* Event Details */}
                 <div className="grid gap-2">
-                  <h2 className="text-lg font-bold text-textBlack ">
-                    {eventDetail.name}
-                  </h2>
-                  <div className="flex flex-col md:flex-row  gap-4 ">
+                  <h2 className="text-lg font-bold text-textBlack ">{eventDetail?.name}</h2>
+                  <div className="flex flex-col md:flex-row gap-4 ">
                     <div className="rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={eventDetail.bannerImage || xtasyGroove}
-                        alt={eventDetail.name}
-                        className="w-[5rem] md:w-[10rem] h-auto 
-                          max-h-[45rem] lg:w-[8rem] lg:h-[10rem]"
+                        src={eventDetail?.bannerImage || xtasyGroove}
+                        alt={eventDetail?.name || "Event banner"}
+                        className="w-[5rem] md:w-[10rem] h-auto max-h-[45rem] lg:w-[8rem] lg:h-[10rem]"
                       />
                     </div>
+
                     <div className="space-y-3 font-semibold text-textBlack">
                       <div className="flex items-center gap-3 ">
                         <Calendar className="w-4 h-4 text-red-500" />
                         <span className="text-sm">
-                          {" "}
-                          {formatDate(eventDetail?.startDate)}{" "}
-                          {eventDetail.endDate &&
-                            `- ${formatDate(eventDetail.endDate)}`}{" "}
+                          {formatDate(eventDetail?.startDate)}
+                          {eventDetail?.endDate ? ` - ${formatDate(eventDetail?.endDate)}` : ""}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-3 ">
                         <Clock className="w-4 h-4 text-red-500" />
                         <span className="text-sm">
-                          {formatTimeRange(
-                            eventDetail.startTime,
-                            eventDetail.endTime
-                          )}
+                          {formatTimeRange(eventDetail?.startTime, eventDetail?.endTime)}
                         </span>
                       </div>
 
                       <div className="flex items-start gap-3 text-gray-700">
                         <MapPin className="w-4 h-4 text-red-500 mt-0.5" />
-                        <span className="text-sm">
-                          {eventDetail.venueName || "TBD"}
-                        </span>
+                        <span className="text-sm">{eventDetail?.venueName || "TBD"}</span>
                       </div>
                     </div>
-                    <div></div>
                   </div>
                 </div>
 
@@ -252,41 +227,34 @@ const Checkout: React.FC = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Ticket className="w-4 h-4 text-primary" />
-                      <span className="font-semibold ">
-                        x {quantity} - {ticket.name}
+                      <span className="font-semibold">
+                        x {quantity} — {ticket?.name}
                       </span>
                     </div>
-                    {/* <span className="font-bold text-lg">
-                          {formatPrice(getTotal())}
-                        </span> */}
                   </div>
 
                   <div className="text-sm md:text-[14px] text-[#918F90] font-medium ml-6">
-                    • Booking fee per ticket: {formatPrice(ticket.price)}
+                    • Booking fee per ticket: {formatPrice(ticket?.price ?? 0)}
                   </div>
                 </div>
 
                 {/* Total */}
                 <div className="border-t border-red-200 pt-4 mb-6">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-textBlack">
-                      Total :
-                    </span>
-                    <span className="text-2xl font-bold text-primary">
-                      {getTotal()}
-                    </span>
+                    <span className="text-lg font-bold text-textBlack">Total :</span>
+                    <span className="text-2xl font-bold text-primary">{getTotal()}</span>
                   </div>
                 </div>
 
                 {/* Terms */}
                 <p className="text-xs md:text-[14px] text-[#A9ABAE] mb-6 font-medium">
-                  By selecting Transfer Completed/Proceed to Payment, I agree to
-                  the Partybank Terms of Service.
+                  By selecting Transfer Completed/Proceed to Payment, I agree to the Partybank Terms of Service.
                 </p>
 
                 {/* Proceed Button */}
                 <DefaultButton
-                  isLoading={isLoading}
+                  isLoading={isLoading || isNavigating}
+                  disabled={isLoading || isNavigating}
                   variant="primary"
                   onClick={handleCheckout}
                   className="w-full mt-4"
@@ -297,6 +265,15 @@ const Checkout: React.FC = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Blocking overlay while loading/redirecting */}
+        {(isLoading || isNavigating) && (
+          <div className="fixed inset-0 z-[9999] bg-white/70 backdrop-blur-sm flex items-center justify-center">
+            <div className="rounded-xl px-6 py-4 shadow bg-white">
+              <p className="text-sm font-medium">Opening Paystack…</p>
+            </div>
+          </div>
+        )}
       </HomeLayout>
     </>
   );
