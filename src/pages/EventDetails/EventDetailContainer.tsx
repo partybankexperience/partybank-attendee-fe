@@ -10,7 +10,7 @@ import DefaultButton from "../../components/buttons/DefaultButton";
 import { useTicketStore } from "../../stores/cartStore";
 import { errorAlert } from "../../components/alerts/ToastService";
 import {
-  checkticketAvailability as checkTicketAvailability, // alias to fix naming
+  checkticketAvailability as checkTicketAvailability,
   getEventBySlug,
 } from "../../containers/eventsApi";
 import { EventDetailsSkeleton } from "../../components/common/LoadingSkeleton";
@@ -24,7 +24,7 @@ const EventDetails: React.FC = () => {
   const navigate = useNavigate();
   const { slug: eventSlug } = useParams();
 
-  // Global stores
+  // Stores
   const { setCheckoutStage } = useAuthStore();
   const { createAndStoreReservation } = useCheckoutStore();
   const {
@@ -49,25 +49,98 @@ const EventDetails: React.FC = () => {
     transition: { duration: 0.6, ease: "easeOut" },
   };
 
-  // Always select the first ticket once per page load
+  // ---------- Ticket ordering & default pick utilities ----------
+  const getStatusRank = (ticket: any) => {
+    const isSoldOut = ticket?.available === 0 || ticket?.available == null;
+    const isPurchasable = ticket?.purchasable && !isSoldOut;
+    if (isPurchasable) return 0; // buyable first
+    if (isSoldOut) return 1;     // then sold out
+    return 2;                    // then everything else
+  };
+
+  const getPaidPrice = (ticket: any) =>
+    ticket?.type === "paid" ? Number(ticket.price) || 0 : 0;
+
+  const compareTickets = (left: any, right: any) => {
+    const leftRank = getStatusRank(left);
+    const rightRank = getStatusRank(right);
+    if (leftRank !== rightRank) return leftRank - rightRank;
+    if (leftRank === 0) {
+      const leftPrice = getPaidPrice(left);
+      const rightPrice = getPaidPrice(right);
+      if (leftPrice !== rightPrice) return leftPrice - rightPrice; // cheaper first
+    }
+    return 0;
+  };
+
+  const sortTickets = (tickets: any[] | undefined | null) =>
+    Array.isArray(tickets) ? [...tickets].sort(compareTickets) : [];
+
+  // Rendered order uses the same comparator
+  const sortedTicketsByStatusAndPrice = useMemo(
+    () => sortTickets(eventDetails?.tickets),
+    [eventDetails?.tickets]
+  );
+
+  // ---------- Auto-select logic ----------
+  // Reset the "one-time" auto-select guard when the slug changes
   useEffect(() => {
-    // reset auto-select guard when slug changes
     setHasAutoSelectedTicket(false);
   }, [eventSlug]);
 
+  // Helper to auto-select the default ticket if needed
+  const selectDefaultTicketIfNeeded = (event: any) => {
+    const tickets = sortTickets(event?.tickets);
+    if (tickets.length === 0) return;
+
+    // If current selection doesn't belong to this event, or nothing is selected, pick default
+    const selectedIsFromThisEvent = selectedTicketId
+      ? tickets.some((t) => t.id === selectedTicketId)
+      : false;
+
+    if (!selectedIsFromThisEvent) {
+      const defaultTicket = tickets[0];
+      selectTicket(defaultTicket, eventSlug as string, event);
+      setHasAutoSelectedTicket(true);
+    }
+  };
+
+  // Data loader — select default immediately after fetching
+  async function loadEventDetails() {
+    setIsLoading(true);
+    try {
+      const response = await getEventBySlug(eventSlug as string);
+      setEventDetails(response);
+      // Select the default as soon as we have data (most reliable)
+      selectDefaultTicketIfNeeded(response);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadEventDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventSlug]);
+
+  // Safety net: if eventDetails change again (e.g., live updates) and we haven't auto-selected yet
   useEffect(() => {
     if (!eventDetails) return;
     if (hasAutoSelectedTicket) return;
+    selectDefaultTicketIfNeeded(eventDetails);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventDetails, hasAutoSelectedTicket]);
 
-    const firstTicket = (eventDetails?.tickets ?? [])[0];
-    if (firstTicket) {
-      // Select the very first ticket on initial load
-      selectTicket(firstTicket, eventSlug as string, eventDetails);
-      setHasAutoSelectedTicket(true);
-    }
-  }, [eventDetails, eventSlug, hasAutoSelectedTicket, selectTicket]);
+  // Compute event passed flag
+  useEffect(() => {
+    if (!eventDetails) return;
+    const now = new Date();
+    const startDate = eventDetails.startDate ? new Date(eventDetails.startDate) : null;
+    const endDate = eventDetails.endDate ? new Date(eventDetails.endDate) : null;
+    setHasEventPassed(endDate ? now > endDate : startDate ? now > startDate : false);
+  }, [eventDetails]);
 
-  // Helpers
+  // ---------- Checkout ----------
   async function getReservationIdentity(user?: { id?: string }) {
     if (user?.id) return { userId: user.id };
     try {
@@ -125,71 +198,7 @@ const EventDetails: React.FC = () => {
     }
   }
 
-  // Data loaders
-  async function loadEventDetails() {
-    setIsLoading(true);
-    try {
-      const response = await getEventBySlug(eventSlug as string);
-      setEventDetails(response);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadEventDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventSlug]);
-
-  // Compute event passed flag
-  useEffect(() => {
-    if (!eventDetails) return;
-    const now = new Date();
-    const startDate = eventDetails.startDate ? new Date(eventDetails.startDate) : null;
-    const endDate = eventDetails.endDate ? new Date(eventDetails.endDate) : null;
-    setHasEventPassed(endDate ? now > endDate : startDate ? now > startDate : false);
-  }, [eventDetails]);
-
-  // Sorted tickets (buyable first, then sold out, then others; within buyable, cheaper first)
-  const sortedTicketsByStatusAndPrice = useMemo(() => {
-    const tickets: any[] = Array.isArray(eventDetails?.tickets)
-      ? [...eventDetails.tickets]
-      : [];
-  
-    const getStatusRank = (ticket: any) => {
-      const isSoldOut = ticket?.available === 0 || ticket?.available == null;
-      const isPurchasable = ticket?.purchasable && !isSoldOut;
-      if (isPurchasable) return 0; // buyable first
-      if (isSoldOut) return 1;     // then sold out
-      return 2;                    // then everything else
-    };
-  
-    const getPaidPrice = (ticket: any) =>
-      ticket?.type === "paid" ? Number(ticket.price) || 0 : 0;
-  
-    return tickets.sort((firstTicket, secondTicket) => {
-      const firstStatusRank = getStatusRank(firstTicket);
-      const secondStatusRank = getStatusRank(secondTicket);
-  
-      if (firstStatusRank !== secondStatusRank) {
-        return firstStatusRank - secondStatusRank;
-      }
-  
-      // Within "buyable", sort cheaper first
-      if (firstStatusRank === 0) {
-        const firstPrice = getPaidPrice(firstTicket);
-        const secondPrice = getPaidPrice(secondTicket);
-        if (firstPrice !== secondPrice) {
-          return firstPrice - secondPrice;
-        }
-      }
-  
-      return 0;
-    });
-  }, [eventDetails?.tickets]);
-  
-
-  // Loading state
+  // ---------- UI states ----------
   if (isLoading) {
     return (
       <HomeLayout>
@@ -198,7 +207,6 @@ const EventDetails: React.FC = () => {
     );
   }
 
-  // Not found state
   if (!eventDetails) {
     return (
       <HomeLayout>
@@ -209,6 +217,7 @@ const EventDetails: React.FC = () => {
     );
   }
 
+  // ---------- Page ----------
   return (
     <HomeLayout>
       <div className="relative -mt-[4.5rem] z-20">
