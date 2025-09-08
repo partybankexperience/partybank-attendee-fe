@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, Ticket } from "lucide-react";
 import xtasyGroove from "../../assets/images/XtasyGroove.png";
@@ -17,7 +17,7 @@ import { formatTimer, usePaymentTimer } from "../../components/helpers/timer";
 import { formatPrice } from "../../components/helpers/numberFormatHelpers";
 
 const Checkout: React.FC = () => {
-  // Animation variants
+  // Animations
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
@@ -28,28 +28,36 @@ const Checkout: React.FC = () => {
 
   // Stores
   const { startCheckout, reservationId, resetCheckout } = useCheckoutStore();
-  const { selectedTicketId, quantity, eventDetail, ticket, getTotal, reset: resetCart } = useTicketStore();
+  const {
+    selectedTicketId,
+    quantity,
+    eventDetail,
+    ticket,
+    getTotal,
+    reset: resetCart,
+  } = useTicketStore();
   const { checkoutStage } = useAuthStore();
   const { setConfirmationDetails } = useConfirmationStore();
 
   // Local UI state
   const [isLoading, setIsLoading] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [overlayMessage, setOverlayMessage] = useState<string | null>(null);
 
   // Payment hold timer
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [timersInitialized, setTimersInitialized] = useState(false);
   const timeLeft = usePaymentTimer(endTime, () => setEndTime(null));
-  const startTimer = (mins: number) => setEndTime(new Date(Date.now() + mins * 60 * 1000));
+  const startTimer = (mins: number) =>
+    setEndTime(new Date(Date.now() + mins * 60 * 1000));
 
   // Leave guards
   const { handleCancelCheckout, ModalForceComponent } = useCancelCheckout();
+  const eventName = Storage.getItem("eventName");
   const { ModalComponent } = useCheckoutLeaveGuards({
     active: true,
-    backTo: `/event-details/${Storage.getItem("eventName")}`,
+    backTo: `/event-details/${eventName}`,
   });
-
-  const eventName = Storage.getItem("eventName");
 
   // Timer boot
   useEffect(() => {
@@ -88,11 +96,12 @@ const Checkout: React.FC = () => {
         return;
       }
 
-      const res = await startCheckout(reservationId);
+      const response = await startCheckout(reservationId);
 
       // Paid flow → redirect to Paystack (defer cleanup to page unload)
-      if (ticket?.type === "paid" && res?.paystackLink) {
+      if (ticket?.type === "paid" && response?.paystackLink) {
         setIsNavigating(true);
+        setOverlayMessage("Opening Paystack…");
 
         const onPageHide = () => {
           try {
@@ -104,14 +113,15 @@ const Checkout: React.FC = () => {
         };
         window.addEventListener("pagehide", onPageHide, { once: true });
 
-        window.location.replace(res.paystackLink);
+        window.location.replace(response.paystackLink);
         return;
       }
 
-      // Free flow → finalize locally
-      if (ticket?.type === "free" && res) {
+      // Free flow → finalize locally (no overlay)
+      if (ticket?.type === "free" && response) {
         setConfirmationDetails(eventDetail, ticket, quantity);
         navigate("/confirmation");
+        // Clear stores after navigation to avoid flicker
         setTimeout(() => {
           resetCheckout();
           resetCart();
@@ -138,10 +148,12 @@ const Checkout: React.FC = () => {
     return (
       <HomeLayout>
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-          <h2 className="text-2xl font-semibold text-textBlack mb-4">No active checkout session</h2>
+          <h2 className="text-2xl font-semibold text-textBlack mb-4">
+            No active checkout session
+          </h2>
           <p className="text-gray-600 mb-6">
-            It seems like you don't have an active checkout session. Please go back to the event page and select your
-            tickets.
+            It seems like you don't have an active checkout session. Please go
+            back to the event page and select your tickets.
           </p>
           <DefaultButton variant="primary" onClick={() => navigate(`/search`)}>
             Back to Events
@@ -165,9 +177,16 @@ const Checkout: React.FC = () => {
             transition={{ duration: 0.8 }}
           >
             {/* Header */}
-            <motion.div className="flex items-center justify-between pb-6" variants={fadeInUp} initial="initial" animate="animate">
+            <motion.div
+              className="flex items-center justify-between pb-6"
+              variants={fadeInUp}
+              initial="initial"
+              animate="animate"
+            >
               <div className="text-center flex-1">
-                <h1 className="text-2xl lg:text-3xl font-medium text-textBlack mb-2">Checkout</h1>
+                <h1 className="text-2xl lg:text-3xl font-medium text-textBlack mb-2">
+                  Checkout
+                </h1>
                 <motion.div
                   className="inline-block bg-[#FFF2F4] text-primary px-4 py-2 rounded-[10px] text-sm font-medium border-2 border-primary/10"
                   animate={{ scale: [1, 1.05, 1] }}
@@ -188,7 +207,9 @@ const Checkout: React.FC = () => {
               >
                 {/* Event Details */}
                 <div className="grid gap-2">
-                  <h2 className="text-lg font-bold text-textBlack ">{eventDetail?.name}</h2>
+                  <h2 className="text-lg font-bold text-textBlack ">
+                    {eventDetail?.name}
+                  </h2>
                   <div className="flex flex-col md:flex-row gap-4 ">
                     <div className="rounded-lg overflow-hidden flex-shrink-0">
                       <img
@@ -203,20 +224,27 @@ const Checkout: React.FC = () => {
                         <Calendar className="w-4 h-4 text-red-500" />
                         <span className="text-sm">
                           {formatDate(eventDetail?.startDate)}
-                          {eventDetail?.endDate ? ` - ${formatDate(eventDetail?.endDate)}` : ""}
+                          {eventDetail?.endDate
+                            ? ` - ${formatDate(eventDetail?.endDate)}`
+                            : ""}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-3 ">
                         <Clock className="w-4 h-4 text-red-500" />
                         <span className="text-sm">
-                          {formatTimeRange(eventDetail?.startTime, eventDetail?.endTime)}
+                          {formatTimeRange(
+                            eventDetail?.startTime,
+                            eventDetail?.endTime
+                          )}
                         </span>
                       </div>
 
                       <div className="flex items-start gap-3 text-gray-700">
                         <MapPin className="w-4 h-4 text-red-500 mt-0.5" />
-                        <span className="text-sm">{eventDetail?.venueName || "TBD"}</span>
+                        <span className="text-sm">
+                          {eventDetail?.venueName || "TBD"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -241,14 +269,19 @@ const Checkout: React.FC = () => {
                 {/* Total */}
                 <div className="border-t border-red-200 pt-4 mb-6">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-textBlack">Total :</span>
-                    <span className="text-2xl font-bold text-primary">{getTotal()}</span>
+                    <span className="text-lg font-bold text-textBlack">
+                      Total :
+                    </span>
+                    <span className="text-2xl font-bold text-primary">
+                      {getTotal()}
+                    </span>
                   </div>
                 </div>
 
                 {/* Terms */}
                 <p className="text-xs md:text-[14px] text-[#A9ABAE] mb-6 font-medium">
-                  By selecting Transfer Completed/Proceed to Payment, I agree to the Partybank Terms of Service.
+                  By selecting Transfer Completed/Proceed to Payment, I agree to
+                  the Partybank Terms of Service.
                 </p>
 
                 {/* Proceed Button */}
@@ -259,18 +292,20 @@ const Checkout: React.FC = () => {
                   onClick={handleCheckout}
                   className="w-full mt-4"
                 >
-                  Proceed to Payment
+                  {ticket?.type === "paid" ? "Proceed to Payment" : "Get Ticket"}
                 </DefaultButton>
               </motion.div>
             </div>
           </motion.div>
         </div>
 
-        {/* Blocking overlay while loading/redirecting */}
-        {(isLoading || isNavigating) && (
+        {/* Blocking overlay — show ONLY when redirecting to Paystack */}
+        {isNavigating && (
           <div className="fixed inset-0 z-[9999] bg-white/70 backdrop-blur-sm flex items-center justify-center">
             <div className="rounded-xl px-6 py-4 shadow bg-white">
-              <p className="text-sm font-medium">Opening Paystack…</p>
+              <p className="text-sm font-medium">
+                {overlayMessage ?? "Please wait…"}
+              </p>
             </div>
           </div>
         )}

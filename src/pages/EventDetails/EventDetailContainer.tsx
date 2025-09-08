@@ -50,25 +50,47 @@ const EventDetails: React.FC = () => {
   };
 
   // ---------- Ticket ordering & default pick utilities ----------
-  const getStatusRank = (ticket: any) => {
-    const isSoldOut = ticket?.available === 0 || ticket?.available == null;
-    const isPurchasable = ticket?.purchasable && !isSoldOut;
-    if (isPurchasable) return 0; // buyable first
-    if (isSoldOut) return 1;     // then sold out
-    return 2;                    // then everything else
+  const normalizeTicket = (raw: any) => {
+    const isUnlimited = Boolean(raw?.isUnlimited ?? raw?.is_unlimited ?? false);
+    const available =
+      typeof raw?.available === "number"
+        ? raw.available
+        : typeof raw?.remaining === "number"
+        ? raw.remaining
+        : null; // null = unknown/∞ (often unlimited)
+    const purchasable = Boolean(raw?.purchasable ?? raw?.isPurchasable ?? false);
+    const type = raw?.type; // "free" | "paid"
+    const price = Number(raw?.price ?? 0);
+
+    return { isUnlimited, available, purchasable, type, price };
   };
 
-  const getPaidPrice = (ticket: any) =>
-    ticket?.type === "paid" ? Number(ticket.price) || 0 : 0;
+  const getStatusRank = (ticket: any) => {
+    const { isUnlimited, available, purchasable } = normalizeTicket(ticket);
+    const hasStock = isUnlimited || (typeof available === "number" && available > 0);
+    const isBuyable = purchasable && hasStock;
+    const isSoldOut = !isUnlimited && typeof available === "number" && available === 0;
+
+    if (isBuyable) return 0;  // buyable first
+    if (isSoldOut) return 1;  // then sold out
+    return 2;                 // everything else
+  };
+
+  const getPaidPrice = (ticket: any) => {
+    const { type, price } = normalizeTicket(ticket);
+    return type === "paid" ? price || 0 : 0; // free = 0
+  };
 
   const compareTickets = (left: any, right: any) => {
     const leftRank = getStatusRank(left);
     const rightRank = getStatusRank(right);
     if (leftRank !== rightRank) return leftRank - rightRank;
+
+    // Within "buyable", sort cheapest first → free before ₦3,000, etc.
     if (leftRank === 0) {
       const leftPrice = getPaidPrice(left);
       const rightPrice = getPaidPrice(right);
-      if (leftPrice !== rightPrice) return leftPrice - rightPrice; // cheaper first
+      if (leftPrice !== rightPrice) return leftPrice - rightPrice;
     }
     return 0;
   };
@@ -95,7 +117,7 @@ const EventDetails: React.FC = () => {
 
     // If current selection doesn't belong to this event, or nothing is selected, pick default
     const selectedIsFromThisEvent = selectedTicketId
-      ? tickets.some((t) => t.id === selectedTicketId)
+      ? tickets.some((ticket) => ticket.id === selectedTicketId)
       : false;
 
     if (!selectedIsFromThisEvent) {
@@ -301,7 +323,7 @@ const EventDetails: React.FC = () => {
                     bg-gradient-to-b from-[#FFF2F4] via-[#FFF2F4] to-white
                     rounded-2xl shadow-lg p-5 md:p-5
                     md:flex md:flex-col
-                    md:max-h[calc(100vh-16.5rem)]
+                    md:max-h-[calc(100vh-16.5rem)]
                     min-h-[420px]
                   "
                   initial={{ opacity: 0, x: 24 }}
@@ -338,7 +360,9 @@ const EventDetails: React.FC = () => {
                         <TicketCard
                           isSelected={selectedTicketId === ticketItem.id}
                           quantity={selectedTicketId === ticketItem.id ? quantity : 0}
-                          selectTicket={() => selectTicket(ticketItem, eventSlug as string, eventDetails)}
+                          selectTicket={() =>
+                            selectTicket(ticketItem, eventSlug as string, eventDetails)
+                          }
                           increaseQuantity={() => increaseQuantity(ticketItem.purchaseLimit)}
                           decreaseQuantity={decreaseQuantity}
                           ticket={ticketItem}
